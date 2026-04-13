@@ -6,6 +6,7 @@ import cs.vsu.radiomanagerapibysolid.mapper.AudioRecordingMapper;
 import cs.vsu.radiomanagerapibysolid.model.AudioRecording;
 import cs.vsu.radiomanagerapibysolid.model.enumerate.ApprovalStatus;
 import cs.vsu.radiomanagerapibysolid.repository.AudioRecordingRep;
+import cs.vsu.radiomanagerapibysolid.service.inter.AudioRecordingService;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
@@ -18,7 +19,7 @@ import java.util.Optional;
 @Service
 @Transactional
 @AllArgsConstructor
-public class AudioRecordingServiceImpl {
+public class AudioRecordingServiceImpl implements AudioRecordingService {
 
     private final BaseProperties baseProperties;
 

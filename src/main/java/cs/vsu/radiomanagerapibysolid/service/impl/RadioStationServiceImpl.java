@@ -4,6 +4,7 @@ import cs.vsu.radiomanagerapibysolid.dto.RadioStationDto;
 import cs.vsu.radiomanagerapibysolid.mapper.RadioStationMapper;
 import cs.vsu.radiomanagerapibysolid.model.RadioStation;
 import cs.vsu.radiomanagerapibysolid.repository.RadioStationRep;
+import cs.vsu.radiomanagerapibysolid.service.inter.RadioStationService;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,7 +16,7 @@ import java.util.Optional;
 
 @Service
 @AllArgsConstructor
-public class RadioStationServiceImpl {
+public class RadioStationServiceImpl implements RadioStationService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RadioStationServiceImpl.class);
 

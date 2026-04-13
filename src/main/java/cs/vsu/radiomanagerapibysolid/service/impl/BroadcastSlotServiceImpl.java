@@ -6,6 +6,7 @@ import cs.vsu.radiomanagerapibysolid.mapper.BroadcastSlotMapper;
 import cs.vsu.radiomanagerapibysolid.model.BroadcastSlot;
 import cs.vsu.radiomanagerapibysolid.model.enumerate.Status;
 import cs.vsu.radiomanagerapibysolid.repository.BroadcastSlotRep;
+import cs.vsu.radiomanagerapibysolid.service.inter.BroadcastSlotService;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
@@ -25,7 +26,7 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 @AllArgsConstructor
-public class BroadcastSlotServiceImpl {
+public class BroadcastSlotServiceImpl implements BroadcastSlotService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BroadcastSlotServiceImpl.class);
 

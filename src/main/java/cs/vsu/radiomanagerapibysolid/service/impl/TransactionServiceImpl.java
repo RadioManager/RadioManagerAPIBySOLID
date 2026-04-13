@@ -4,6 +4,7 @@ import cs.vsu.radiomanagerapibysolid.dto.TransactionDto;
 import cs.vsu.radiomanagerapibysolid.mapper.TransactionMapper;
 import cs.vsu.radiomanagerapibysolid.model.Transaction;
 import cs.vsu.radiomanagerapibysolid.repository.TransactionRep;
+import cs.vsu.radiomanagerapibysolid.service.inter.TransactionService;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,7 +16,7 @@ import java.util.Optional;
 
 @Service
 @AllArgsConstructor
-public class TransactionServiceImpl {
+public class TransactionServiceImpl implements TransactionService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TransactionServiceImpl.class);
 
