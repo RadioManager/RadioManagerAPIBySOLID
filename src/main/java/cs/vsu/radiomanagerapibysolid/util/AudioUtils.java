@@ -63,7 +63,7 @@ public class AudioUtils {
 //        }
 //    }
 
-    public static double getMp3Duration(MultipartFile file) throws IOException {
+    public static double getMp3Duration(MultipartFile file) {
         if (!isAudioFile(file)) {
             throw new IllegalArgumentException(
                     "Invalid file. Expected audio/mpeg with extension .mp3"
@@ -74,26 +74,23 @@ public class AudioUtils {
             throw new IllegalArgumentException("File is empty");
         }
 
-        byte[] fileBytes = file.getBytes();
-
-        Path tempFile = Files.createTempFile("upload-", ".mp3");
         try {
-            Files.write(tempFile, fileBytes);
+            byte[] fileBytes = file.getBytes();
+            Path tempFile = Files.createTempFile("upload-", ".mp3");
 
-            MP3File mp3File = (MP3File) AudioFileIO.read(tempFile.toFile());
-
-            return mp3File.getAudioHeader().getTrackLength();
-
-        } catch (CannotReadException | TagException | ReadOnlyFileException |
-                 InvalidAudioFrameException e) {
-            LOGGER.error("Failed to read MP3 file: {}", file.getOriginalFilename(), e);
-            throw new IOException("Failed to read MP3 duration", e);
-        } finally {
             try {
+                Files.write(tempFile, fileBytes);
+
+                MP3File mp3File = (MP3File) AudioFileIO.read(tempFile.toFile());
+
+                return mp3File.getAudioHeader().getTrackLength();
+            } finally {
                 Files.deleteIfExists(tempFile);
-            } catch (IOException ex) {
-                LOGGER.warn("Failed to delete a temporary file: {}", tempFile, ex);
             }
+        } catch (IOException | CannotReadException | TagException |
+                 ReadOnlyFileException | InvalidAudioFrameException e) {
+            LOGGER.error("Failed to read MP3 file: {}", file.getOriginalFilename(), e);
+            throw new RuntimeException("Failed to read MP3 duration", e);
         }
     }
 
