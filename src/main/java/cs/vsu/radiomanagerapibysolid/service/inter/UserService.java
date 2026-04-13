@@ -1,6 +1,5 @@
 package cs.vsu.radiomanagerapibysolid.service.inter;
 
-import cs.vsu.radiomanagerapibysolid.dto.NameDto;
 import cs.vsu.radiomanagerapibysolid.dto.UserDto;
 import cs.vsu.radiomanagerapibysolid.model.enumerate.Role;
 import lombok.NonNull;
@@ -29,7 +28,6 @@ public interface UserService {
 
     Role getRoleById(Long id);
 
-    NameDto getNameById(Long id);
-
     UserDto getSystemEntity();
+
 }

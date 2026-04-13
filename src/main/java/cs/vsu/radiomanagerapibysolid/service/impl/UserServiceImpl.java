@@ -1,5 +1,6 @@
 package cs.vsu.radiomanagerapibysolid.service.impl;
 
+import cs.vsu.radiomanagerapibysolid.config.SystemEntityProperties;
 import cs.vsu.radiomanagerapibysolid.dto.UserDto;
 import cs.vsu.radiomanagerapibysolid.mapper.UserMapper;
 import cs.vsu.radiomanagerapibysolid.model.User;
@@ -126,19 +127,6 @@ public class UserServiceImpl implements UserService {
         LOGGER.debug("Getting role by id: {}", id);
         return getUserById(id).getRole();
     }
-
-    public NameDto getNameById(Long id) {
-        LOGGER.debug("Fetching name by id: {}", id);
-        UserDto userDto = getUserById(id);
-        if (userDto != null) {
-            NameDto nameDto = new NameDto();
-            nameDto.setName(userDto.getName());
-            nameDto.setSurname(userDto.getSurname());
-            return nameDto;
-        }
-        return null;
-    }
-
 
     public UserDto getSystemEntity() {
         LOGGER.debug("Fetching system entity");
