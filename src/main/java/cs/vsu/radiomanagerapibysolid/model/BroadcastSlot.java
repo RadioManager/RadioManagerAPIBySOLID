@@ -1,0 +1,46 @@
+package cs.vsu.radiomanagerapibysolid.model;
+
+import cs.vsu.radiomanagerapibysolid.model.enumerate.Status;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+import org.hibernate.annotations.JdbcType;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+import org.hibernate.dialect.PostgreSQLEnumJdbcType;
+
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "broadcast_slot", uniqueConstraints = {
+        @UniqueConstraint(
+                name = "UNIQUE_BROADCAST_SLOT",
+                columnNames = {
+                        "start_time", "end_time", "radio_station_id"
+                })
+})
+@Getter
+@Setter
+public class BroadcastSlot {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "start_time", nullable = false)
+    private LocalDateTime startTime;
+
+    @Column(name = "end_time", nullable = false)
+    private LocalDateTime endTime;
+
+    @JdbcType(PostgreSQLEnumJdbcType.class)
+    @Column(name = "status", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private Status status;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "radio_station_id", referencedColumnName = "id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private RadioStation radioStation;
+
+}
