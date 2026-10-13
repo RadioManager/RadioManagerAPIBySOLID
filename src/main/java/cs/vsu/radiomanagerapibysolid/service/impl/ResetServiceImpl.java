@@ -1,6 +1,7 @@
 package cs.vsu.radiomanagerapibysolid.service.impl;
 
 import cs.vsu.radiomanagerapibysolid.dto.UserDto;
+import cs.vsu.radiomanagerapibysolid.exception.NotFoundException;
 import cs.vsu.radiomanagerapibysolid.security.JwtProvider;
 import cs.vsu.radiomanagerapibysolid.service.inter.AuthService;
 import cs.vsu.radiomanagerapibysolid.service.inter.ResetService;
@@ -51,8 +52,7 @@ public class ResetServiceImpl implements ResetService {
 
             LOGGER.info("Password reset email sent successfully to: {}", email);
         } else {
-            LOGGER.error("Password reset failed - email not found: {}", email);
-            throw new RuntimeException("User with email " + email + " not found");
+            throw new NotFoundException("User with email " + email + " not found");
         }
     }
 
