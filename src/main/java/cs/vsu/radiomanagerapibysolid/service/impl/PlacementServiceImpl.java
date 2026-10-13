@@ -4,6 +4,7 @@ import cs.vsu.radiomanagerapibysolid.config.BaseProperties;
 import cs.vsu.radiomanagerapibysolid.dto.AudioRecordingDto;
 import cs.vsu.radiomanagerapibysolid.dto.BroadcastSlotDto;
 import cs.vsu.radiomanagerapibysolid.dto.PlacementDto;
+import cs.vsu.radiomanagerapibysolid.exception.NotFoundException;
 import cs.vsu.radiomanagerapibysolid.mapper.PlacementMapper;
 import cs.vsu.radiomanagerapibysolid.model.Placement;
 import cs.vsu.radiomanagerapibysolid.repository.PlacementRep;
@@ -73,87 +74,72 @@ public class PlacementServiceImpl implements PlacementService {
     @Override
     public PlacementDto createPlacement(PlacementDto placementDto) {
         LOGGER.debug("Creating placement {}", placementDto);
-        try {
-            Placement placement = mapper.toEntity(placementDto);
-            placement.setId(null);
-            placement = placementRep.save(placement);
-            LOGGER.debug("Placement created: {}", placement);
-            return mapper.toDto(placement);
-        } catch (Exception e) {
-            LOGGER.error("Failed to create placement: {}", placementDto, e);
-            throw new RuntimeException("Failed to create placement: " + placementDto, e);
-        }
+        Placement placement = mapper.toEntity(placementDto);
+        placement.setId(null);
+        placement = placementRep.save(placement);
+        LOGGER.debug("Placement created: {}", placement);
+        return mapper.toDto(placement);
     }
 
     @Override
     public PlacementDto updatePlacement(PlacementDto placementDto) {
         LOGGER.debug("Updating placement {}", placementDto);
-        try {
-            Optional<Placement> optional = placementRep.findById(placementDto.getId());
-            if (optional.isPresent()) {
-                Placement placement = optional.get();
-                mapper.updateEntityFromDto(placementDto, placement);
-                Placement updated = placementRep.save(placement);
-                LOGGER.debug("Placement updated: {}", updated);
-                return mapper.toDto(updated);
-            }
-            LOGGER.warn("Placement with id {} not found", placementDto.getId());
-            return null;
-        } catch (Exception e) {
-            LOGGER.error("Failed to update placement: {}", placementDto, e);
-            throw new RuntimeException("Failed to update placement: " + placementDto, e);
+        Optional<Placement> optional = placementRep.findById(placementDto.getId());
+        if (optional.isPresent()) {
+            Placement placement = optional.get();
+            mapper.updateEntityFromDto(placementDto, placement);
+            Placement updated = placementRep.save(placement);
+            LOGGER.debug("Placement updated: {}", updated);
+            return mapper.toDto(updated);
         }
+        LOGGER.warn("Placement with id {} not found", placementDto.getId());
+        return null;
     }
 
     @Override
     public boolean deletePlacement(Long id) {
         LOGGER.debug("Deleting placement {}", id);
-        try {
-            Optional<Placement> optional = placementRep.findById(id);
-            if (optional.isPresent()) {
-                Placement placement = optional.get();
-                placementRep.delete(placement);
-                LOGGER.debug("Placement deleted: {}", placement);
-                return true;
-            }
-            LOGGER.warn("Placement with id for delete {} not found", id);
-            return false;
-        } catch (Exception e) {
-            LOGGER.error("Failed to delete placement: {}", id, e);
-            throw new RuntimeException("Failed to delete placement: " + id, e);
+        Optional<Placement> optional = placementRep.findById(id);
+        if (optional.isPresent()) {
+            Placement placement = optional.get();
+            placementRep.delete(placement);
+            LOGGER.debug("Placement deleted: {}", placement);
+            return true;
         }
+        LOGGER.warn("Placement with id for delete {} not found", id);
+        return false;
     }
 
     @Override
     public Double getPlacementPrice(PlacementDto placementDto) {
         LOGGER.debug("Getting a price of placement {}", placementDto);
-        try {
-            BroadcastSlotDto slot = broadcastSlotService.getBroadcastSlotById(placementDto.getBroadcastSlotId());
-            AudioRecordingDto audio = audioRecordingService.getRecordingById(placementDto.getAudioRecordingId());
-
-            Double baseCost = audio.getCost();
-
-            LocalTime slotStart = slot.getStartTime().toLocalTime();
-
-            boolean highPriority = baseProperties.getPriorityHigh().stream()
-                    .anyMatch(p ->
-                            !slotStart.isBefore(p.getStart()) &&
-                                    slotStart.isBefore(p.getEnd())
-                    );
-
-            double finalPrice = highPriority
-                    ? baseCost * baseProperties.getPriorityMultiplier()
-                    : baseCost;
-
-            LOGGER.info("Computed placement price: {} (highPriority={}): base={} * multiplier={}",
-                    finalPrice, highPriority, baseCost, baseProperties.getPriorityMultiplier()
-            );
-            return finalPrice;
-        } catch (Exception e) {
-            LOGGER.error("Failed to get price of placement: {}", placementDto, e);
-            throw new RuntimeException("Failed to get price of placement: " + placementDto, e);
+        BroadcastSlotDto slot = broadcastSlotService.getBroadcastSlotById(placementDto.getBroadcastSlotId());
+        if (slot == null) {
+            throw new NotFoundException("Broadcast slot not found: " + placementDto.getBroadcastSlotId());
+        }
+        AudioRecordingDto audio = audioRecordingService.getRecordingById(placementDto.getAudioRecordingId());
+        if (audio == null) {
+            throw new NotFoundException("Audio recording not found: " + placementDto.getAudioRecordingId());
         }
 
+        Double baseCost = audio.getCost();
+
+        LocalTime slotStart = slot.getStartTime().toLocalTime();
+
+        boolean highPriority = baseProperties.getPriorityHigh().stream()
+                .anyMatch(p ->
+                        !slotStart.isBefore(p.getStart()) &&
+                                slotStart.isBefore(p.getEnd())
+                );
+
+        double finalPrice = highPriority
+                ? baseCost * baseProperties.getPriorityMultiplier()
+                : baseCost;
+
+        LOGGER.info("Computed placement price: {} (highPriority={}): base={} * multiplier={}",
+                finalPrice, highPriority, baseCost, baseProperties.getPriorityMultiplier()
+        );
+        return finalPrice;
     }
 
 }
