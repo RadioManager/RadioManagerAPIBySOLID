@@ -4,10 +4,14 @@ import cs.vsu.radiomanagerapibysolid.config.BaseProperties;
 import cs.vsu.radiomanagerapibysolid.dto.AudioRecordingDto;
 import cs.vsu.radiomanagerapibysolid.dto.BroadcastSlotDto;
 import cs.vsu.radiomanagerapibysolid.dto.PlacementDto;
+import cs.vsu.radiomanagerapibysolid.exception.ConflictException;
 import cs.vsu.radiomanagerapibysolid.exception.NotFoundException;
 import cs.vsu.radiomanagerapibysolid.mapper.PlacementMapper;
 import cs.vsu.radiomanagerapibysolid.model.Placement;
+import cs.vsu.radiomanagerapibysolid.model.enumerate.ApprovalStatus;
+import cs.vsu.radiomanagerapibysolid.model.enumerate.Status;
 import cs.vsu.radiomanagerapibysolid.repository.PlacementRep;
+import cs.vsu.radiomanagerapibysolid.service.inter.AccessService;
 import cs.vsu.radiomanagerapibysolid.service.inter.AudioRecordingService;
 import cs.vsu.radiomanagerapibysolid.service.inter.BroadcastSlotService;
 import cs.vsu.radiomanagerapibysolid.service.inter.PlacementService;
@@ -15,8 +19,10 @@ import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
@@ -38,6 +44,9 @@ public class PlacementServiceImpl implements PlacementService {
     private final AudioRecordingService audioRecordingService;
 
     private final BroadcastSlotService broadcastSlotService;
+
+    // TODO(ревью): новая зависимость — нужна для проверки «запись принадлежит текущему пользователю» в createPlacement
+    private final AccessService accessService;
 
     @Override
     public List<PlacementDto> getAll() {
@@ -71,12 +80,52 @@ public class PlacementServiceImpl implements PlacementService {
         return mapper.toDto(placementRep.findByBroadcastSlotId(id).orElse(null));
     }
 
+    // TODO(ревью): раньше эта логика жила в старом PlacementController.createPlacement, а сервис только
+    //   сохранял запись. Перенесено из контроллера:
+    //     - проверка «запись длиннее слота» → была 409 → теперь ConflictException (тоже 409). Сравнение
+    //       оставлено как было (>= 0): запись ровно на длину слота тоже считается «не влезает»;
+    //     - перевод слота в OCCUPIED после сохранения.
+    //   Добавлено нового (в старом коде этого не было):
+    //     - слот или запись не найдены → NotFoundException (404), раньше было NPE → 500;
+    //     - слот уже не AVAILABLE → ConflictException (в таблице placement нет UNIQUE на slot_id, поэтому
+    //       раньше один слот можно было продать дважды);
+    //     - запись должна быть APPROVED и принадлежать текущему пользователю (или он ADMIN) → иначе
+    //       ConflictException / AccessDeniedException (403). Фронт и так предлагает только свои одобренные
+    //       записи (loadAllowedRecordings), но без проверки на бэке это обходилось подменой id в запросе.
     @Override
     public PlacementDto createPlacement(PlacementDto placementDto) {
         LOGGER.debug("Creating placement {}", placementDto);
+
+        BroadcastSlotDto slot = broadcastSlotService.getBroadcastSlotById(placementDto.getBroadcastSlotId());
+        if (slot == null) {
+            throw new NotFoundException("Broadcast slot not found: " + placementDto.getBroadcastSlotId());
+        }
+        AudioRecordingDto audio = audioRecordingService.getRecordingById(placementDto.getAudioRecordingId());
+        if (audio == null) {
+            throw new NotFoundException("Audio recording not found: " + placementDto.getAudioRecordingId());
+        }
+
+        if (!accessService.isOwnerOrAdmin(audio.getUserId())) {
+            throw new AccessDeniedException("Audio recording " + audio.getId() + " belongs to another user");
+        }
+        if (audio.getApprovalStatus() != ApprovalStatus.APPROVED) {
+            throw new ConflictException("Audio recording " + audio.getId() + " is not approved");
+        }
+        if (slot.getStatus() != Status.AVAILABLE) {
+            throw new ConflictException("Broadcast slot " + slot.getId() + " is already occupied");
+        }
+
+        Duration audioDuration = Duration.ofSeconds(Math.round(audio.getDuration()));
+        Duration slotDuration = Duration.between(slot.getStartTime(), slot.getEndTime());
+        if (audioDuration.compareTo(slotDuration) >= 0) {
+            throw new ConflictException("Audio recording " + audio.getId()
+                    + " is longer than broadcast slot " + slot.getId());
+        }
+
         Placement placement = mapper.toEntity(placementDto);
         placement.setId(null);
         placement = placementRep.save(placement);
+        broadcastSlotService.updateBroadcastSlotStatus(slot.getId(), Status.OCCUPIED);
         LOGGER.debug("Placement created: {}", placement);
         return mapper.toDto(placement);
     }
