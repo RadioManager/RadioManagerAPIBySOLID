@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
@@ -26,16 +27,28 @@ public class JwtProvider {
 
     private final SecretKey jwtAccessSecret;
 
-    public JwtProvider(@Value("${jwt.secret}") String jwtAccessSecret) {
+    private final Duration accessTokenTtl;
+
+    public JwtProvider(@Value("${jwt.secret}") String jwtAccessSecret,
+                       @Value("${jwt.access-token-ttl}") Duration accessTokenTtl) {
         this.jwtAccessSecret = Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtAccessSecret));
+        this.accessTokenTtl = accessTokenTtl;
     }
 
     public String generateToken(@NonNull UserDto user) {
+        Instant now = Instant.now();
+
         return Jwts.builder()
                 .subject(String.valueOf(user.getId()))
+                .issuedAt(Date.from(now))
+                .expiration(Date.from(now.plus(accessTokenTtl)))
                 .signWith(jwtAccessSecret)
                 .claim("role", user.getRole().name())
                 .compact();
+    }
+
+    public Duration getAccessTokenTtl() {
+        return accessTokenTtl;
     }
 
     public String generatePasswordResetToken(@NonNull Long userId) {
