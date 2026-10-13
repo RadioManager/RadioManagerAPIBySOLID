@@ -32,14 +32,15 @@ public class AudioServiceImpl implements AudioService {
         return FileUtils.saveFile(file, Path.of(audioFilesDir), fileId);
     }
 
+    // TODO(ревью): имя на диске собирается здесь, а не в контроллере (см. комментарий в FileService)
     @Override
-    public byte[] getFile(String filename) {
-        return FileUtils.getFile(filename, Path.of(audioFilesDir));
+    public byte[] getFile(Long fileId, String originalFilename) {
+        return FileUtils.getFile(FileUtils.generateUniqueFilename(fileId, originalFilename), Path.of(audioFilesDir));
     }
 
     @Override
-    public boolean deleteFile(String filename) {
-        return FileUtils.deleteFile(filename, Path.of(audioFilesDir));
+    public boolean deleteFile(Long fileId, String originalFilename) {
+        return FileUtils.deleteFile(FileUtils.generateUniqueFilename(fileId, originalFilename), Path.of(audioFilesDir));
     }
 
     @Override

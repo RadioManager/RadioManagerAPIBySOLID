@@ -42,14 +42,15 @@ public class ExcelServiceImpl implements DataTableService {
         return FileUtils.saveFile(file, Path.of(excelFilesDir), fileId);
     }
 
+    // TODO(ревью): сигнатуры поменялись вместе с FileService (id + исходное имя вместо готового имени на диске)
     @Override
-    public byte[] getFile(String filename) {
-        return FileUtils.getFile(filename, Path.of(excelFilesDir));
+    public byte[] getFile(Long fileId, String originalFilename) {
+        return FileUtils.getFile(FileUtils.generateUniqueFilename(fileId, originalFilename), Path.of(excelFilesDir));
     }
 
     @Override
-    public boolean deleteFile(String filename) {
-        return FileUtils.deleteFile(filename, Path.of(excelFilesDir));
+    public boolean deleteFile(Long fileId, String originalFilename) {
+        return FileUtils.deleteFile(FileUtils.generateUniqueFilename(fileId, originalFilename), Path.of(excelFilesDir));
     }
 
     @Override
