@@ -20,8 +20,6 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class JwtFilter extends GenericFilterBean {
 
-    private static final String JWT_COOKIE_NAME = "jwt";
-
     private final JwtProvider jwtProvider;
 
     @Override
@@ -41,7 +39,7 @@ public class JwtFilter extends GenericFilterBean {
         Cookie[] cookies = request.getCookies();
         if (cookies != null) {
             for (Cookie cookie : cookies) {
-                if (JWT_COOKIE_NAME.equals(cookie.getName())) {
+                if (JwtCookieProvider.JWT_COOKIE_NAME.equals(cookie.getName())) {
                     return cookie.getValue();
                 }
             }

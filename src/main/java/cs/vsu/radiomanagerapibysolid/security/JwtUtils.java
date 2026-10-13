@@ -10,7 +10,7 @@ public class JwtUtils {
     public static AuthModel generate(Claims claims) {
         final AuthModel jwtInfoToken = new AuthModel();
         jwtInfoToken.setRole(Role.valueOf(claims.get("role", String.class)));
-        jwtInfoToken.setLogin(claims.getSubject());
+        jwtInfoToken.setUserId(Long.valueOf(claims.getSubject()));
         jwtInfoToken.setName(claims.get("name", String.class));
         return jwtInfoToken;
     }

@@ -61,34 +61,23 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto createUser(UserDto userDto) {
-        try {
-            User user = mapper.toEntity(userDto);
-            user.setId(null);
-            user.setPassword(passwordEncoder.encode(userDto.getPassword()));
-            user = userRep.save(user);
-            LOGGER.info("User created: {}", userDto.getLogin());
-            return mapper.toDto(user);
-        } catch (Exception e) {
-            LOGGER.error("Error creating user: {}", userDto.getLogin(), e);
-            throw new RuntimeException("Error creating user", e);
-        }
+        User user = mapper.toEntity(userDto);
+        user.setId(null);
+        user.setPassword(passwordEncoder.encode(userDto.getPassword()));
+        user = userRep.save(user);
+        LOGGER.info("User created: {}", userDto.getLogin());
+        return mapper.toDto(user);
     }
 
     @Override
     public boolean deleteUser(Long id) {
-        try {
-            Optional<User> user = userRep.findById(id);
-            if (user.isPresent()) {
-                userRep.deleteById(Math.toIntExact(id));
-                LOGGER.info("User deleted with id: {}", id);
-                return true;
-            }
-            return false;
-
-        } catch (Exception e) {
-            LOGGER.error("Error deleting user with id: {}", id, e);
-            throw new RuntimeException("Error deleting user", e);
+        Optional<User> user = userRep.findById(id);
+        if (user.isPresent()) {
+            userRep.deleteById(Math.toIntExact(id));
+            LOGGER.info("User deleted with id: {}", id);
+            return true;
         }
+        return false;
     }
 
     @Override
@@ -142,20 +131,12 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDto getSystemEntity() {
         LOGGER.debug("Fetching system entity");
-        try {
-            String login = systemEntityProperties.getLogin();
-            UserDto systemEntity = getUserByLogin(login);
-            if (systemEntity != null) {
-                LOGGER.debug("Fetched system entity");
-                return systemEntity;
-            }
-
-            LOGGER.error("System entity not found for login: {}", login);
-            throw new RuntimeException("System entity not found for login: " + login);
-        } catch (Exception e) {
-            LOGGER.error("Error fetching system entity", e);
-            throw new RuntimeException("Error fetching system entity", e);
+        String login = systemEntityProperties.getLogin();
+        UserDto systemEntity = getUserByLogin(login);
+        if (systemEntity != null) {
+            LOGGER.debug("Fetched system entity");
+            return systemEntity;
         }
-
+        throw new IllegalStateException("System entity not found for login: " + login);
     }
 }

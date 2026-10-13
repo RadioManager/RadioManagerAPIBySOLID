@@ -69,55 +69,40 @@ public class RadioStationServiceImpl implements RadioStationService {
     @Override
     public RadioStationDto createRadioStation(RadioStationDto radioStationDto) {
         LOGGER.debug("Creating radio station: {}", radioStationDto);
-        try {
-            RadioStation newRadioStation = mapper.toEntity(radioStationDto);
-            newRadioStation.setId(null);
-            newRadioStation = radioStationRep.save(newRadioStation);
-            LOGGER.debug("Radio station created: {}", newRadioStation);
-            return mapper.toDto(newRadioStation);
-        } catch (Exception e) {
-            LOGGER.error("Failed to create radio station: {}", radioStationDto, e);
-            throw new RuntimeException("Failed to create radio station: " + radioStationDto, e);
-        }
+        RadioStation newRadioStation = mapper.toEntity(radioStationDto);
+        newRadioStation.setId(null);
+        newRadioStation = radioStationRep.save(newRadioStation);
+        LOGGER.debug("Radio station created: {}", newRadioStation);
+        return mapper.toDto(newRadioStation);
     }
 
     @Override
     public RadioStationDto updateRadioStation(RadioStationDto radioStationDto) {
         LOGGER.debug("Updating radio station: {}", radioStationDto);
-        try {
-            Optional<RadioStation> optional = radioStationRep.findById(radioStationDto.getId());
-            if (optional.isPresent()) {
-                RadioStation radioStation = optional.get();
-                mapper.updateEntityFromDto(radioStationDto, radioStation);
-                RadioStation updatedRadioStation = radioStationRep.save(radioStation);
-                LOGGER.debug("Radio station updated: {}", updatedRadioStation);
-                return mapper.toDto(updatedRadioStation);
-            }
-            LOGGER.warn("Radio station with id {} not found", radioStationDto.getId());
-            return null;
-        } catch (Exception e) {
-            LOGGER.error("Failed to update radio station: {}", radioStationDto, e);
-            throw new RuntimeException("Failed to update radio station: " + radioStationDto, e);
+        Optional<RadioStation> optional = radioStationRep.findById(radioStationDto.getId());
+        if (optional.isPresent()) {
+            RadioStation radioStation = optional.get();
+            mapper.updateEntityFromDto(radioStationDto, radioStation);
+            RadioStation updatedRadioStation = radioStationRep.save(radioStation);
+            LOGGER.debug("Radio station updated: {}", updatedRadioStation);
+            return mapper.toDto(updatedRadioStation);
         }
+        LOGGER.warn("Radio station with id {} not found", radioStationDto.getId());
+        return null;
     }
 
     @Override
     public boolean deleteRadioStation(Long id) {
         LOGGER.debug("Deleting radio station: {}", id);
-        try {
-            Optional<RadioStation> optional = radioStationRep.findById(id);
-            if (optional.isPresent()) {
-                RadioStation radioStation = optional.get();
-                radioStationRep.delete(radioStation);
-                LOGGER.debug("Radio station deleted: {}", radioStation);
-                return true;
-            }
-            LOGGER.warn("Radio station with id: {} not found", id);
-            return false;
-        } catch (Exception e) {
-            LOGGER.error("Error while deleting radio station", e);
-            throw new RuntimeException("Error while deleting radio station", e);
+        Optional<RadioStation> optional = radioStationRep.findById(id);
+        if (optional.isPresent()) {
+            RadioStation radioStation = optional.get();
+            radioStationRep.delete(radioStation);
+            LOGGER.debug("Radio station deleted: {}", radioStation);
+            return true;
         }
+        LOGGER.warn("Radio station with id: {} not found", id);
+        return false;
     }
 
 }

@@ -13,7 +13,7 @@ import java.util.List;
 public class AuthModel implements Authentication {
 
     private boolean authenticated;
-    private String login;
+    private Long userId;
     private String name;
     private Role role;
 
@@ -35,7 +35,7 @@ public class AuthModel implements Authentication {
 
     @Override
     public Object getPrincipal() {
-        return login;
+        return userId;
     }
 
     @Override

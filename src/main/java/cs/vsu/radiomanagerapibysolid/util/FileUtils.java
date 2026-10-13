@@ -1,16 +1,21 @@
 package cs.vsu.radiomanagerapibysolid.util;
 
+import cs.vsu.radiomanagerapibysolid.exception.NotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
+import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.Objects;
 
@@ -21,11 +26,20 @@ public final class FileUtils {
     private FileUtils(){
     }
 
-    public static ResponseEntity<Resource> getFileResponse(byte[] fileData, String filename) {
+    // TODO(ревью): добавлены два улучшения к старому методу:
+    //   1) параметр mediaType → заголовок Content-Type (для mp3 передавать AudioUtils.AUDIO_MPEG), чтобы
+    //      фронт мог играть файл прямо по ссылке <audio src=".../download"> без base64;
+    //   2) Content-Disposition собирается через ContentDisposition с UTF-8 — раньше имя подставлялось строкой
+    //      в кавычках, и русские имена файлов («реклама.mp3») в браузере ломались.
+    public static ResponseEntity<Resource> getFileResponse(byte[] fileData, String filename, MediaType mediaType) {
         if (fileData != null) {
             ByteArrayResource resource = new ByteArrayResource(fileData);
+            ContentDisposition contentDisposition = ContentDisposition.attachment()
+                    .filename(filename, StandardCharsets.UTF_8)
+                    .build();
             return ResponseEntity.ok()
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                    .contentType(mediaType)
+                    .header(HttpHeaders.CONTENT_DISPOSITION, contentDisposition.toString())
                     .body(resource);
         } else {
             return ResponseEntity.status(404).body(null);
@@ -74,6 +88,10 @@ public final class FileUtils {
         try {
             Path filepath = directory.resolve(filename);
             return Files.readAllBytes(filepath);
+        } catch (NoSuchFileException e) {
+            // TODO(ревью): нового — если запись в БД есть, а файла на диске нет, теперь будет 404
+            //   (через GlobalExceptionHandler), а не 500. Остальные ошибки чтения по-прежнему 500.
+            throw new NotFoundException("File not found: " + filename);
         } catch (IOException e) {
             LOGGER.error("Error reading file: {}", e.getMessage());
             throw new RuntimeException("Error reading file", e);

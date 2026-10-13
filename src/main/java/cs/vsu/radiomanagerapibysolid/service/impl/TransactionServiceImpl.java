@@ -5,6 +5,7 @@ import cs.vsu.radiomanagerapibysolid.mapper.TransactionMapper;
 import cs.vsu.radiomanagerapibysolid.model.Transaction;
 import cs.vsu.radiomanagerapibysolid.repository.TransactionRep;
 import cs.vsu.radiomanagerapibysolid.service.inter.TransactionService;
+import cs.vsu.radiomanagerapibysolid.service.inter.UserService;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +24,9 @@ public class TransactionServiceImpl implements TransactionService {
     private final TransactionRep transactionRep;
 
     private final TransactionMapper mapper;
+
+    // TODO(ревью): новая зависимость — нужна createSystemTransaction, чтобы найти системную сущность
+    private final UserService userService;
 
     @Override
     public List<TransactionDto> getAllTransactions() {
@@ -65,35 +69,36 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     public TransactionDto createTransaction(TransactionDto transactionDto) {
         LOGGER.debug("Creating transaction: {}", transactionDto);
-        try {
-            Transaction newTransaction = mapper.toEntity(transactionDto);
-            newTransaction.setId(null);
-            newTransaction = transactionRep.save(newTransaction);
-            LOGGER.debug("Transaction created: {}", newTransaction);
-            return mapper.toDto(newTransaction);
-        } catch (Exception e) {
-            LOGGER.error("Error while creating transaction", e);
-            throw new RuntimeException("Error while creating transaction", e);
-        }
+        Transaction newTransaction = mapper.toEntity(transactionDto);
+        newTransaction.setId(null);
+        newTransaction = transactionRep.save(newTransaction);
+        LOGGER.debug("Transaction created: {}", newTransaction);
+        return mapper.toDto(newTransaction);
+    }
+
+    // TODO(ревью): перенесено из старого TransactionController.createSystemTransaction (POST /transaction/system):
+    //   контроллер сам подставлял adminId = id системной сущности и вызывал createTransaction. Логика та же.
+    //   Если системной сущности нет в БД, getSystemEntity бросает IllegalStateException → 500 (это ошибка
+    //   конфигурации сервера, а не клиента).
+    @Override
+    public TransactionDto createSystemTransaction(TransactionDto transactionDto) {
+        LOGGER.debug("Creating system transaction: {}", transactionDto);
+        transactionDto.setAdminId(userService.getSystemEntity().getId());
+        return createTransaction(transactionDto);
     }
 
     @Override
     public boolean deleteTransaction(Long id) {
         LOGGER.debug("Deleting transaction by id: {}", id);
-        try {
-            Optional<Transaction> transactionOptional = transactionRep.findById(id);
-            if (transactionOptional.isPresent()) {
-                Transaction transaction = transactionOptional.get();
-                transactionRep.delete(transaction);
-                LOGGER.debug("Transaction deleted: {}", transaction);
-                return true;
-            }
-            LOGGER.warn("Transaction with id {} not found", id);
-            return false;
-        } catch (Exception e) {
-            LOGGER.error("Error while deleting transaction", e);
-            throw new RuntimeException("Error while deleting transaction", e);
+        Optional<Transaction> transactionOptional = transactionRep.findById(id);
+        if (transactionOptional.isPresent()) {
+            Transaction transaction = transactionOptional.get();
+            transactionRep.delete(transaction);
+            LOGGER.debug("Transaction deleted: {}", transaction);
+            return true;
         }
+        LOGGER.warn("Transaction with id {} not found", id);
+        return false;
     }
 
 }
