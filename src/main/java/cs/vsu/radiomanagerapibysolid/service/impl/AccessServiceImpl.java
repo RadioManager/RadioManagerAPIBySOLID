@@ -5,13 +5,13 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-@Service
+@Service("accessService")
 public class AccessServiceImpl implements AccessService {
 
     @Override
     public Long getCurrentUserId() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        return Long.valueOf((String) auth.getPrincipal());
+        return (Long) auth.getPrincipal();
     }
 
     @Override
