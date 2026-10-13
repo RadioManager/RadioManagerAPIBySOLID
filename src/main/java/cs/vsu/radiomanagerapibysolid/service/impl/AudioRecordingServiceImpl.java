@@ -64,74 +64,54 @@ public class AudioRecordingServiceImpl implements AudioRecordingService {
     @Override
     public AudioRecordingDto createRecording(AudioRecordingDto recordingDto) {
         LOGGER.debug("Creating recording {}", recordingDto);
-        try {
-            AudioRecording audioRecording = mapper.toEntity(recordingDto);
-            audioRecording.setId(null);
-            audioRecording = audioRecordingRep.save(audioRecording);
-            LOGGER.debug("Recording created with id {}", audioRecording.getId());
-            return mapper.toDto(audioRecording);
-        } catch (Exception e) {
-            LOGGER.error("Error creating recording {}", recordingDto, e);
-            throw new RuntimeException("Error creating recording: " + recordingDto, e);
-        }
+        AudioRecording audioRecording = mapper.toEntity(recordingDto);
+        audioRecording.setId(null);
+        audioRecording = audioRecordingRep.save(audioRecording);
+        LOGGER.debug("Recording created with id {}", audioRecording.getId());
+        return mapper.toDto(audioRecording);
     }
 
     @Override
     public AudioRecordingDto updateRecording(AudioRecordingDto recordingDto) {
         LOGGER.debug("Updating recording {}", recordingDto);
-        try {
-            Optional<AudioRecording> optionalAudioRecording = audioRecordingRep.findById(recordingDto.getId());
-            if (optionalAudioRecording.isPresent()) {
-                AudioRecording audioRecording = optionalAudioRecording.get();
-                mapper.updateEntityFromDto(recordingDto, audioRecording);
-                LOGGER.debug("Recording updated with id {}", audioRecording.getId());
-                return mapper.toDto(audioRecording);
-            }
-            LOGGER.warn("Recording with id for update {} not found", recordingDto.getId());
-            return null;
-        } catch (Exception e) {
-            LOGGER.error("Error updating recording {}", recordingDto, e);
-            throw new RuntimeException("Error updating recording: " + recordingDto, e);
+        Optional<AudioRecording> optionalAudioRecording = audioRecordingRep.findById(recordingDto.getId());
+        if (optionalAudioRecording.isPresent()) {
+            AudioRecording audioRecording = optionalAudioRecording.get();
+            mapper.updateEntityFromDto(recordingDto, audioRecording);
+            LOGGER.debug("Recording updated with id {}", audioRecording.getId());
+            return mapper.toDto(audioRecording);
         }
+        LOGGER.warn("Recording with id for update {} not found", recordingDto.getId());
+        return null;
     }
 
     @Override
     public AudioRecordingDto deleteRecording(Long id) {
         LOGGER.debug("Deleting recording {}", id);
-        try {
-            Optional<AudioRecording> optionalAudioRecording = audioRecordingRep.findById(id);
-            if (optionalAudioRecording.isPresent()) {
-                AudioRecording audioRecording = optionalAudioRecording.get();
-                audioRecordingRep.delete(audioRecording);
-                LOGGER.debug("Recording deleted with id {}", audioRecording.getId());
-                return mapper.toDto(audioRecording);
-            }
-            LOGGER.warn("Recording with id for delete {} not found", id);
-            return null;
-        } catch (Exception e) {
-            LOGGER.error("Error deleting recording {}", id, e);
-            throw new RuntimeException("Error deleting recording: " + id, e);
+        Optional<AudioRecording> optionalAudioRecording = audioRecordingRep.findById(id);
+        if (optionalAudioRecording.isPresent()) {
+            AudioRecording audioRecording = optionalAudioRecording.get();
+            audioRecordingRep.delete(audioRecording);
+            LOGGER.debug("Recording deleted with id {}", audioRecording.getId());
+            return mapper.toDto(audioRecording);
         }
+        LOGGER.warn("Recording with id for delete {} not found", id);
+        return null;
     }
 
     @Override
     public AudioRecordingDto updateRecordingStatus(Long id, ApprovalStatus approvalStatus) {
         LOGGER.debug("Updating status of recording {}", id);
-        try {
-            Optional<AudioRecording> optionalAudioRecording = audioRecordingRep.findById(id);
-            if (optionalAudioRecording.isPresent()) {
-                AudioRecording audioRecording = optionalAudioRecording.get();
-                audioRecording.setApprovalStatus(approvalStatus);
-                AudioRecording updatedAudioRecording = audioRecordingRep.save(audioRecording);
-                LOGGER.debug("Recording status updated with id {}", updatedAudioRecording.getId());
-                return mapper.toDto(updatedAudioRecording);
-            }
-            LOGGER.warn("Recording status with id for update {} not found", id);
-            return null;
-        } catch (Exception e) {
-            LOGGER.error("Error updating recording status {}", id, e);
-            throw new RuntimeException("Error updating recording status: " + id, e);
+        Optional<AudioRecording> optionalAudioRecording = audioRecordingRep.findById(id);
+        if (optionalAudioRecording.isPresent()) {
+            AudioRecording audioRecording = optionalAudioRecording.get();
+            audioRecording.setApprovalStatus(approvalStatus);
+            AudioRecording updatedAudioRecording = audioRecordingRep.save(audioRecording);
+            LOGGER.debug("Recording status updated with id {}", updatedAudioRecording.getId());
+            return mapper.toDto(updatedAudioRecording);
         }
+        LOGGER.warn("Recording status with id for update {} not found", id);
+        return null;
     }
 
     @Override

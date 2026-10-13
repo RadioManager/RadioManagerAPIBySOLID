@@ -65,35 +65,25 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     public TransactionDto createTransaction(TransactionDto transactionDto) {
         LOGGER.debug("Creating transaction: {}", transactionDto);
-        try {
-            Transaction newTransaction = mapper.toEntity(transactionDto);
-            newTransaction.setId(null);
-            newTransaction = transactionRep.save(newTransaction);
-            LOGGER.debug("Transaction created: {}", newTransaction);
-            return mapper.toDto(newTransaction);
-        } catch (Exception e) {
-            LOGGER.error("Error while creating transaction", e);
-            throw new RuntimeException("Error while creating transaction", e);
-        }
+        Transaction newTransaction = mapper.toEntity(transactionDto);
+        newTransaction.setId(null);
+        newTransaction = transactionRep.save(newTransaction);
+        LOGGER.debug("Transaction created: {}", newTransaction);
+        return mapper.toDto(newTransaction);
     }
 
     @Override
     public boolean deleteTransaction(Long id) {
         LOGGER.debug("Deleting transaction by id: {}", id);
-        try {
-            Optional<Transaction> transactionOptional = transactionRep.findById(id);
-            if (transactionOptional.isPresent()) {
-                Transaction transaction = transactionOptional.get();
-                transactionRep.delete(transaction);
-                LOGGER.debug("Transaction deleted: {}", transaction);
-                return true;
-            }
-            LOGGER.warn("Transaction with id {} not found", id);
-            return false;
-        } catch (Exception e) {
-            LOGGER.error("Error while deleting transaction", e);
-            throw new RuntimeException("Error while deleting transaction", e);
+        Optional<Transaction> transactionOptional = transactionRep.findById(id);
+        if (transactionOptional.isPresent()) {
+            Transaction transaction = transactionOptional.get();
+            transactionRep.delete(transaction);
+            LOGGER.debug("Transaction deleted: {}", transaction);
+            return true;
         }
+        LOGGER.warn("Transaction with id {} not found", id);
+        return false;
     }
 
 }

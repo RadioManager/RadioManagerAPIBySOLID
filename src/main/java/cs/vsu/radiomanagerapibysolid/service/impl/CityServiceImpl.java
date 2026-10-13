@@ -60,55 +60,40 @@ public class CityServiceImpl implements CityService {
     @Override
     public CityDto createCity(CityDto cityDto) {
         LOGGER.debug("Creating city: {}", cityDto);
-        try {
-            City city = mapper.toEntity(cityDto);
-            city.setId(null);
-            city = cityRep.save(city);
-            LOGGER.debug("City created: {}", city);
-            return mapper.toDto(city);
-        } catch (Exception e) {
-            LOGGER.error("Failed to create city: {}", cityDto, e);
-            throw new RuntimeException("Failed to create city: " + cityDto, e);
-        }
+        City city = mapper.toEntity(cityDto);
+        city.setId(null);
+        city = cityRep.save(city);
+        LOGGER.debug("City created: {}", city);
+        return mapper.toDto(city);
     }
 
     @Override
     public CityDto updateCity(CityDto cityDto) {
         LOGGER.debug("Updating city: {}", cityDto);
-        try {
-            Optional<City> optional = cityRep.findById(cityDto.getId());
-            if (optional.isPresent()) {
-                City city = optional.get();
-                mapper.updateEntityFromDto(cityDto, city);
-                City updated = cityRep.save(city);
-                LOGGER.debug("City updated: {}", updated);
-                return mapper.toDto(updated);
-            }
-            LOGGER.warn("City with id {} not found", cityDto.getId());
-            return null;
-        } catch (Exception e) {
-            LOGGER.error("Failed to update city: {}", cityDto, e);
-            throw new RuntimeException("Failed to update city: " + cityDto, e);
+        Optional<City> optional = cityRep.findById(cityDto.getId());
+        if (optional.isPresent()) {
+            City city = optional.get();
+            mapper.updateEntityFromDto(cityDto, city);
+            City updated = cityRep.save(city);
+            LOGGER.debug("City updated: {}", updated);
+            return mapper.toDto(updated);
         }
+        LOGGER.warn("City with id {} not found", cityDto.getId());
+        return null;
     }
 
     @Override
     public boolean deleteCity(Long id) {
         LOGGER.debug("Deleting city by id: {}", id);
-        try {
-            Optional<City> optional = cityRep.findById(id);
-            if (optional.isPresent()) {
-                City city = optional.get();
-                cityRep.delete(city);
-                LOGGER.debug("City deleted: {}", city);
-                return true;
-            }
-            LOGGER.warn("City with id for delete {} not found", id);
-            return false;
-        } catch (Exception e) {
-            LOGGER.error("Failed to delete city: {}", id, e);
-            throw new RuntimeException("Failed to delete city: " + id, e);
+        Optional<City> optional = cityRep.findById(id);
+        if (optional.isPresent()) {
+            City city = optional.get();
+            cityRep.delete(city);
+            LOGGER.debug("City deleted: {}", city);
+            return true;
         }
+        LOGGER.warn("City with id for delete {} not found", id);
+        return false;
     }
 
 }
