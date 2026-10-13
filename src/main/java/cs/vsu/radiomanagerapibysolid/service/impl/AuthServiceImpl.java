@@ -24,6 +24,7 @@ public class AuthServiceImpl implements AuthService {
 
     private final BCryptPasswordEncoder passwordEncoder;
 
+    @Override
     public UserDto authenticate(@NonNull AuthUserDto authUserDto) {
         LOGGER.info("Authenticating user with login: {}", authUserDto.getLogin());
         Optional<UserDto> userOptional = Optional.ofNullable(userService.getUserByLogin(authUserDto.getLogin()));
@@ -41,6 +42,7 @@ public class AuthServiceImpl implements AuthService {
         return null;
     }
 
+    @Override
     public boolean checkEmailExists(@NotNull String email) {
         LOGGER.info("Checking if email exists: {}", email);
         Optional<UserDto> userOptional = Optional.ofNullable(userService.getUserByLogin(email));
@@ -53,18 +55,19 @@ public class AuthServiceImpl implements AuthService {
         return exists;
     }
 
+    @Override
     public boolean registerUser(@NotNull UserDto userDto) {
-        LOGGER.info("Registering user with ID: {}", userDto.getId());
-        Optional<UserDto> userOptional = Optional.ofNullable(userService.getUserById(userDto.getId()));
-        if (userOptional.isEmpty()) {
-            userService.createUser(userDto);
-            LOGGER.info("User created successfully");
-            return true;
+        LOGGER.info("Registering user with login: {}", userDto.getLogin());
+        if (userService.getUserByLogin(userDto.getLogin()) != null) {
+            LOGGER.warn("User already exists with login: {}", userDto.getLogin());
+            return false;
         }
-        LOGGER.warn("User already exists with ID: {}", userDto.getId());
-        return false;
+        userService.createUser(userDto);
+        LOGGER.info("User created successfully: {}", userDto.getLogin());
+        return true;
     }
 
+    @Override
     public UserDto getCurrentUser(Long id) {
         LOGGER.info("Getting current user with ID: {}", id);
         Optional<UserDto> userOptional = Optional.ofNullable(userService.getUserById(id));

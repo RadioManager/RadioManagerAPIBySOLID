@@ -38,11 +38,13 @@ public class PlacementServiceImpl implements PlacementService {
 
     private final BroadcastSlotService broadcastSlotService;
 
+    @Override
     public List<PlacementDto> getAll() {
         LOGGER.debug("Fetching all placements");
         return mapper.toDtoList(placementRep.findAll());
     }
 
+    @Override
     public PlacementDto getById(Long id) {
         LOGGER.debug("Fetching placement by id: {}", id);
         return placementRep.findById(id)
@@ -50,25 +52,31 @@ public class PlacementServiceImpl implements PlacementService {
                 .orElse(null);
     }
 
+    @Override
     public List<PlacementDto> getByPlacementDate(LocalDateTime date) {
         LOGGER.debug("Fetching placements by date {}", date);
         return mapper.toDtoList(placementRep.findByPlacementDate(date));
     }
 
+    @Override
     public List<PlacementDto> getByAudioRecordingId(Long id) {
         LOGGER.debug("Fetching placements by audio recording id {}", id);
         return mapper.toDtoList(placementRep.findByAudioRecordingId(id));
     }
 
+    @Override
     public PlacementDto getByBroadcastSlotId(Long id) {
         LOGGER.debug("Fetching placement by broadcast slot id {}", id);
         return mapper.toDto(placementRep.findByBroadcastSlotId(id).orElse(null));
     }
 
+    @Override
     public PlacementDto createPlacement(PlacementDto placementDto) {
         LOGGER.debug("Creating placement {}", placementDto);
         try {
-            Placement placement = placementRep.save(mapper.toEntity(placementDto));
+            Placement placement = mapper.toEntity(placementDto);
+            placement.setId(null);
+            placement = placementRep.save(placement);
             LOGGER.debug("Placement created: {}", placement);
             return mapper.toDto(placement);
         } catch (Exception e) {
@@ -77,6 +85,7 @@ public class PlacementServiceImpl implements PlacementService {
         }
     }
 
+    @Override
     public PlacementDto updatePlacement(PlacementDto placementDto) {
         LOGGER.debug("Updating placement {}", placementDto);
         try {
@@ -96,6 +105,7 @@ public class PlacementServiceImpl implements PlacementService {
         }
     }
 
+    @Override
     public boolean deletePlacement(Long id) {
         LOGGER.debug("Deleting placement {}", id);
         try {
@@ -114,6 +124,7 @@ public class PlacementServiceImpl implements PlacementService {
         }
     }
 
+    @Override
     public Double getPlacementPrice(PlacementDto placementDto) {
         LOGGER.debug("Getting a price of placement {}", placementDto);
         try {

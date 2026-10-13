@@ -24,11 +24,13 @@ public class TransactionServiceImpl implements TransactionService {
 
     private final TransactionMapper mapper;
 
+    @Override
     public List<TransactionDto> getAllTransactions() {
         LOGGER.debug("Fetching all transactions");
         return mapper.toDtoList(transactionRep.findAll());
     }
 
+    @Override
     public TransactionDto getTransactionById(Long id) {
         LOGGER.debug("Fetching transaction by id: {}", id);
         return transactionRep.findById(id)
@@ -36,38 +38,46 @@ public class TransactionServiceImpl implements TransactionService {
                 .orElse(null);
     }
 
+    @Override
     public List<TransactionDto> getTransactionsByUserId(Long userId) {
         LOGGER.debug("Fetching transactions by user id: {}", userId);
         return mapper.toDtoList(transactionRep.findByUserId(userId));
     }
 
+    @Override
     public List<TransactionDto> getTransactionsByAdminId(Long adminId) {
         LOGGER.debug("Fetching transactions by admin id: {}", adminId);
         return mapper.toDtoList(transactionRep.findByAdminId(adminId));
     }
 
+    @Override
     public List<TransactionDto> getTransactionsByAdminIdAndUserId(Long adminId, Long userId) {
         LOGGER.debug("Fetching transactions by admin id: {} and user id: {}", adminId, userId);
         return mapper.toDtoList(transactionRep.findByAdminIdAndUserId(adminId, userId));
     }
 
+    @Override
     public List<TransactionDto> getTransactionsByDate(LocalDateTime transactionDate) {
         LOGGER.debug("Fetching transactions by date {}", transactionDate);
         return mapper.toDtoList(transactionRep.findByTransactionDate(transactionDate));
     }
 
+    @Override
     public TransactionDto createTransaction(TransactionDto transactionDto) {
         LOGGER.debug("Creating transaction: {}", transactionDto);
         try {
-            Transaction newTransaction = transactionRep.save(mapper.toEntity(transactionDto));
+            Transaction newTransaction = mapper.toEntity(transactionDto);
+            newTransaction.setId(null);
+            newTransaction = transactionRep.save(newTransaction);
             LOGGER.debug("Transaction created: {}", newTransaction);
             return mapper.toDto(newTransaction);
         } catch (Exception e) {
             LOGGER.error("Error while creating transaction", e);
-            throw new RuntimeException("Error while creating transaction");
+            throw new RuntimeException("Error while creating transaction", e);
         }
     }
 
+    @Override
     public boolean deleteTransaction(Long id) {
         LOGGER.debug("Deleting transaction by id: {}", id);
         try {
@@ -82,7 +92,7 @@ public class TransactionServiceImpl implements TransactionService {
             return false;
         } catch (Exception e) {
             LOGGER.error("Error while deleting transaction", e);
-            throw new RuntimeException("Error while deleting transaction");
+            throw new RuntimeException("Error while deleting transaction", e);
         }
     }
 

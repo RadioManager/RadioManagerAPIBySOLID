@@ -29,11 +29,13 @@ public class AudioRecordingServiceImpl implements AudioRecordingService {
 
     private AudioRecordingMapper mapper;
 
+    @Override
     public List<AudioRecordingDto> getAllRecordings() {
         LOGGER.debug("Fetching all recordings");
         return mapper.toDtoList(audioRecordingRep.findAll());
     }
 
+    @Override
     public AudioRecordingDto getRecordingById(Long id) {
         LOGGER.debug("Fetching recording {}", id);
         return audioRecordingRep.findById(id)
@@ -41,25 +43,31 @@ public class AudioRecordingServiceImpl implements AudioRecordingService {
                 .orElse(null);
     }
 
+    @Override
     public List<AudioRecordingDto> getRecordingByUserId(Long userId) {
         LOGGER.debug("Fetching recordings by user {}", userId);
         return mapper.toDtoList(audioRecordingRep.findByUserId(userId));
     }
 
+    @Override
     public List<AudioRecordingDto> getRecordingByStatus(ApprovalStatus status) {
         LOGGER.debug("Fetching recordings by status {}", status);
         return mapper.toDtoList(audioRecordingRep.findByApprovalStatus(status));
     }
 
+    @Override
     public List<AudioRecordingDto> getRecordingByStatusAndUserId(ApprovalStatus status, Long userId) {
         LOGGER.debug("Fetching recordings by status {} and user {}", status, userId);
         return mapper.toDtoList(audioRecordingRep.findByApprovalStatusAndUserId(status, userId));
     }
 
+    @Override
     public AudioRecordingDto createRecording(AudioRecordingDto recordingDto) {
         LOGGER.debug("Creating recording {}", recordingDto);
         try {
-            AudioRecording audioRecording = audioRecordingRep.save(mapper.toEntity(recordingDto));
+            AudioRecording audioRecording = mapper.toEntity(recordingDto);
+            audioRecording.setId(null);
+            audioRecording = audioRecordingRep.save(audioRecording);
             LOGGER.debug("Recording created with id {}", audioRecording.getId());
             return mapper.toDto(audioRecording);
         } catch (Exception e) {
@@ -68,6 +76,7 @@ public class AudioRecordingServiceImpl implements AudioRecordingService {
         }
     }
 
+    @Override
     public AudioRecordingDto updateRecording(AudioRecordingDto recordingDto) {
         LOGGER.debug("Updating recording {}", recordingDto);
         try {
@@ -86,6 +95,7 @@ public class AudioRecordingServiceImpl implements AudioRecordingService {
         }
     }
 
+    @Override
     public AudioRecordingDto deleteRecording(Long id) {
         LOGGER.debug("Deleting recording {}", id);
         try {
@@ -104,6 +114,7 @@ public class AudioRecordingServiceImpl implements AudioRecordingService {
         }
     }
 
+    @Override
     public AudioRecordingDto updateRecordingStatus(Long id, ApprovalStatus approvalStatus) {
         LOGGER.debug("Updating status of recording {}", id);
         try {
@@ -123,6 +134,7 @@ public class AudioRecordingServiceImpl implements AudioRecordingService {
         }
     }
 
+    @Override
     public Double getCostByDuration(Double duration) {
 
         return baseProperties.getFilePrice() * duration;

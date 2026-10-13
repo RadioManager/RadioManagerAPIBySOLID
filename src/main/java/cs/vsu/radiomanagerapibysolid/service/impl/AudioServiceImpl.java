@@ -27,18 +27,22 @@ public class AudioServiceImpl implements AudioService {
         FileUtils.createDirectory(directory);
     }
 
+    @Override
     public String saveFile(MultipartFile file, Long fileId) {
         return FileUtils.saveFile(file, Path.of(audioFilesDir), fileId);
     }
 
+    @Override
     public byte[] getFile(String filename) {
         return FileUtils.getFile(filename, Path.of(audioFilesDir));
     }
 
+    @Override
     public boolean deleteFile(String filename) {
-        return FileUtils.deleteAudio(filename, Path.of(audioFilesDir));
+        return FileUtils.deleteFile(filename, Path.of(audioFilesDir));
     }
 
+    @Override
     public double getAudioDuration(MultipartFile file) {
         return AudioUtils.getMp3Duration(file);
     }

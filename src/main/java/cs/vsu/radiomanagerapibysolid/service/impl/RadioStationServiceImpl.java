@@ -24,11 +24,13 @@ public class RadioStationServiceImpl implements RadioStationService {
 
     private final RadioStationMapper mapper;
 
+    @Override
     public List<RadioStationDto> getAllRadioStation() {
         LOGGER.debug("Fetching all radio stations");
         return mapper.toDtoList(radioStationRep.findAll());
     }
 
+    @Override
     public RadioStationDto getRadioStationById(Long id) {
         LOGGER.debug("Fetching radio station by id: {}", id);
         return radioStationRep.findById(id)
@@ -36,6 +38,7 @@ public class RadioStationServiceImpl implements RadioStationService {
                 .orElse(null);
     }
 
+    @Override
     public RadioStationDto getRadioStationByRepresentativeId(Long id) {
         LOGGER.debug("Fetching radio station by representative id:  {}", id);
         return  radioStationRep.findByRepresentativeId(id)
@@ -43,6 +46,7 @@ public class RadioStationServiceImpl implements RadioStationService {
                 .orElse(null);
     }
 
+    @Override
     public RadioStationDto getRadioStationByName(String name) {
         LOGGER.debug("Fetching radio station by name: {}", name);
         return  radioStationRep.findByName(name)
@@ -50,20 +54,25 @@ public class RadioStationServiceImpl implements RadioStationService {
                 .orElse(null);
     }
 
+    @Override
     public List<RadioStationDto> getRadioStationsByFrequency(BigDecimal frequency) {
         LOGGER.debug("Fetching radio stations by frequency: {}", frequency);
         return mapper.toDtoList(radioStationRep.findByFrequency(frequency));
     }
 
+    @Override
     public List<RadioStationDto> getRadioStationsByCityId(Long cityId) {
         LOGGER.debug("Fetching radio stations by city id: {}", cityId);
         return mapper.toDtoList(radioStationRep.findByCityId(cityId));
     }
 
+    @Override
     public RadioStationDto createRadioStation(RadioStationDto radioStationDto) {
         LOGGER.debug("Creating radio station: {}", radioStationDto);
         try {
-            RadioStation newRadioStation = radioStationRep.save(mapper.toEntity(radioStationDto));
+            RadioStation newRadioStation = mapper.toEntity(radioStationDto);
+            newRadioStation.setId(null);
+            newRadioStation = radioStationRep.save(newRadioStation);
             LOGGER.debug("Radio station created: {}", newRadioStation);
             return mapper.toDto(newRadioStation);
         } catch (Exception e) {
@@ -72,6 +81,7 @@ public class RadioStationServiceImpl implements RadioStationService {
         }
     }
 
+    @Override
     public RadioStationDto updateRadioStation(RadioStationDto radioStationDto) {
         LOGGER.debug("Updating radio station: {}", radioStationDto);
         try {
@@ -91,6 +101,7 @@ public class RadioStationServiceImpl implements RadioStationService {
         }
     }
 
+    @Override
     public boolean deleteRadioStation(Long id) {
         LOGGER.debug("Deleting radio station: {}", id);
         try {
@@ -105,7 +116,7 @@ public class RadioStationServiceImpl implements RadioStationService {
             return false;
         } catch (Exception e) {
             LOGGER.error("Error while deleting radio station", e);
-            throw new RuntimeException("Error while deleting radio station");
+            throw new RuntimeException("Error while deleting radio station", e);
         }
     }
 

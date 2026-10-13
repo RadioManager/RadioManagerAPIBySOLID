@@ -37,18 +37,22 @@ public class ExcelServiceImpl implements DataTableService {
         FileUtils.createDirectory(directory);
     }
 
+    @Override
     public String saveFile(MultipartFile file, Long fileId) {
         return FileUtils.saveFile(file, Path.of(excelFilesDir), fileId);
     }
 
+    @Override
     public byte[] getFile(String filename) {
         return FileUtils.getFile(filename, Path.of(excelFilesDir));
     }
 
+    @Override
     public boolean deleteFile(String filename) {
-        return FileUtils.deleteAudio(filename, Path.of(excelFilesDir));
+        return FileUtils.deleteFile(filename, Path.of(excelFilesDir));
     }
 
+    @Override
     public List<Pair<LocalDateTime, LocalDateTime>> getTimeFromTable(MultipartFile file) {
         try {
             LOGGER.info("Starting to read Excel file for time intervals");

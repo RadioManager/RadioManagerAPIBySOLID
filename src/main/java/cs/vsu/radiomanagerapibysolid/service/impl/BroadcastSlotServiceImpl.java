@@ -36,11 +36,13 @@ public class BroadcastSlotServiceImpl implements BroadcastSlotService {
 
     private final BaseProperties baseProperties;
 
+    @Override
     public List<BroadcastSlotDto> getAllBroadcastSlots() {
         LOGGER.debug("Fetching all broadcast slots");
         return mapper.toDtoList(broadcastSlotRep.findAll());
     }
 
+    @Override
     public BroadcastSlotDto getBroadcastSlotById(Long id) {
         LOGGER.debug("Fetching broadcast slot by id: {}", id);
         return broadcastSlotRep.findById(id)
@@ -48,6 +50,7 @@ public class BroadcastSlotServiceImpl implements BroadcastSlotService {
                 .orElse(null);
     }
 
+    @Override
     public BroadcastSlotDto getBroadcastSlotByStartTimeAndEndTimeAndRadioStation(LocalDateTime startTime,
                                                                                  LocalDateTime endTime,
                                                                                  Long radioStationId) {
@@ -60,11 +63,13 @@ public class BroadcastSlotServiceImpl implements BroadcastSlotService {
                 .orElse(null);
     }
 
+    @Override
     public List<BroadcastSlotDto> getBroadcastSlotsByStatus(Status status) {
         LOGGER.debug("Fetching broadcast slot by status: {}", status);
         return mapper.toDtoList(broadcastSlotRep.findByStatus(status));
     }
 
+    @Override
     public BroadcastSlotDto getBroadcastSlotByStartTimeAndEndTime(LocalDateTime startTime, LocalDateTime endTime) {
         LOGGER.debug(
                 "Fetching broadcast slot by startTime and endTime: {}",
@@ -75,16 +80,19 @@ public class BroadcastSlotServiceImpl implements BroadcastSlotService {
                 .orElse(null);
     }
 
+    @Override
     public  List<BroadcastSlotDto> getBroadcastSlotByRadioStationId(Long radioStationId) {
         LOGGER.debug("Fetching broadcast slot by radio station with id: {}", radioStationId);
         return mapper.toDtoList(broadcastSlotRep.findByRadioStationId(radioStationId));
     }
 
+    @Override
     public List<BroadcastSlotDto> getBroadcastSlotsByRadioStationIdWithStatus(Long radioStationId, Status status) {
         LOGGER.debug("Fetching broadcast slot by radio station with id: {}, with status: {}", radioStationId, status);
         return mapper.toDtoList(broadcastSlotRep.findByRadioStationIdAndStatus(radioStationId, status));
     }
 
+    @Override
     public List<BroadcastSlotDto> getEmptyBroadcastSlotsByPriorityWithRadioStation(
             Long radioStationId, boolean highPriority) {
         LOGGER.debug("Fetching broadcast slot by radio station with id: {} and high priority is {}",
@@ -104,10 +112,13 @@ public class BroadcastSlotServiceImpl implements BroadcastSlotService {
                 .toList();
     }
 
+    @Override
     public BroadcastSlotDto createBroadcastSlot(BroadcastSlotDto broadcastSlotDto) {
         LOGGER.debug("Creating broadcast slot: {}", broadcastSlotDto);
         try {
-            BroadcastSlot broadcastSlot = broadcastSlotRep.save(mapper.toEntity(broadcastSlotDto));
+            BroadcastSlot broadcastSlot = mapper.toEntity(broadcastSlotDto);
+            broadcastSlot.setId(null);
+            broadcastSlot = broadcastSlotRep.save(broadcastSlot);
             return mapper.toDto(broadcastSlot);
         } catch (Exception e) {
             LOGGER.error("Error creating broadcast slot", e);
@@ -115,10 +126,12 @@ public class BroadcastSlotServiceImpl implements BroadcastSlotService {
         }
     }
 
+    @Override
     public List<BroadcastSlotDto> createBroadcastSlots(List<BroadcastSlotDto> broadcastSlotsDto) {
         LOGGER.debug("Creating broadcast slots: {}", broadcastSlotsDto);
         try {
             List<BroadcastSlot> entities = mapper.toEntityList(broadcastSlotsDto);
+            entities.forEach(slot -> slot.setId(null));
 
             List<BroadcastSlot> savedEntities = broadcastSlotRep.saveAll(entities);
 
@@ -131,6 +144,7 @@ public class BroadcastSlotServiceImpl implements BroadcastSlotService {
         }
     }
 
+    @Override
     public BroadcastSlotDto updateBroadcastSlot(BroadcastSlotDto broadcastSlotDto) {
         LOGGER.debug("Updating broadcast slot: {}", broadcastSlotDto);
         Optional<BroadcastSlot> broadcastSlot = broadcastSlotRep.findById(broadcastSlotDto.getId());
@@ -145,6 +159,7 @@ public class BroadcastSlotServiceImpl implements BroadcastSlotService {
         return null;
     }
 
+    @Override
     public boolean deleteBroadcastSlot(Long id) {
         LOGGER.debug("Deleting broadcast slot: {}", id);
         try {
@@ -163,6 +178,7 @@ public class BroadcastSlotServiceImpl implements BroadcastSlotService {
         }
     }
 
+    @Override
     public boolean deleteBroadcastSlotsByRadioStationAfterStartTime(
             Long radioStationId, LocalDateTime startTime) {
         LOGGER.debug("Deleting broadcast slots of radio station {} after start time: {}",
@@ -182,6 +198,7 @@ public class BroadcastSlotServiceImpl implements BroadcastSlotService {
 
     }
 
+    @Override
     public BroadcastSlotDto updateBroadcastSlotStatus(Long id, Status status) {
         LOGGER.debug("Updating broadcast slot status: {}", id);
         Optional<BroadcastSlot> broadcastSlot = broadcastSlotRep.findById(id);
@@ -196,6 +213,7 @@ public class BroadcastSlotServiceImpl implements BroadcastSlotService {
         return null;
     }
 
+    @Override
     public BroadcastSlotDto updateBroadcastSlotEndTime(Long id, LocalDateTime endTime) {
         LOGGER.debug("Updating broadcast slot end time: {}", id);
         Optional<BroadcastSlot> broadcastSlot = broadcastSlotRep.findById(id);
@@ -210,6 +228,7 @@ public class BroadcastSlotServiceImpl implements BroadcastSlotService {
         return null;
     }
 
+    @Override
     public BroadcastSlotDto splitBroadcastSlot(Long id, LocalDateTime newEndTime) {
         LOGGER.debug("Splitting broadcast slot with id: {}", id);
         Optional<BroadcastSlot> broadcastSlotOpt = broadcastSlotRep.findById(id);
@@ -247,6 +266,7 @@ public class BroadcastSlotServiceImpl implements BroadcastSlotService {
         return null;
     }
 
+    @Override
     public List<BroadcastSlotDto> getBroadcastSlotsByMonth(int year, int month) {
         LOGGER.debug("Fetching broadcast slots for year: {} and month: {}", year, month);
         LocalDateTime start = LocalDateTime.of(year, month, 1, 0, 0);
@@ -258,6 +278,7 @@ public class BroadcastSlotServiceImpl implements BroadcastSlotService {
                 .collect(Collectors.toList());
     }
 
+    @Override
     public List<BroadcastSlotDto> getBroadcastSlotsByRadioStationIdAfterStartTime(Long id, LocalDateTime startTime) {
         LOGGER.debug("Fetching broadcast slots for radio station: {} after {}", id, startTime.toString());
         List<BroadcastSlot> slots = broadcastSlotRep.findByRadioStationIdAndStartTimeAfter(id, startTime);
@@ -267,6 +288,7 @@ public class BroadcastSlotServiceImpl implements BroadcastSlotService {
                 .collect(Collectors.toList());
     }
 
+    @Override
     public List<BroadcastSlotDto> getBroadcastSlotsByRadioStationIdWithStatusAfterStartTime(
             Long id, Status status,LocalDateTime startTime) {
         LOGGER.debug("Fetching broadcast slots for radio station: {} with status: {} after {}",
@@ -279,6 +301,7 @@ public class BroadcastSlotServiceImpl implements BroadcastSlotService {
                 .collect(Collectors.toList());
     }
 
+    @Override
     public List<BroadcastSlotDto> createBroadcastSlotsDtoFromTimeAndStation(
             Long stationId, List<Pair<LocalDateTime, LocalDateTime>> timePair) {
         LOGGER.debug("Creating broadcast slot dto for station: {}", stationId);
@@ -287,7 +310,6 @@ public class BroadcastSlotServiceImpl implements BroadcastSlotService {
             BroadcastSlotDto newDto;
             for (Pair<LocalDateTime, LocalDateTime> pair : timePair) {
                 newDto = new BroadcastSlotDto();
-                //newDto.setId(0L);
                 newDto.setStartTime(pair.getFirst());
                 newDto.setEndTime(pair.getSecond());
                 newDto.setStatus(Status.AVAILABLE);
@@ -303,15 +325,10 @@ public class BroadcastSlotServiceImpl implements BroadcastSlotService {
 
     }
 
+    @Override
     public double getPriorityMultiplier(boolean priority) {
-        try {
-            LOGGER.debug("Fetching priority multiplier for priority: {}", priority);
-            return priority ? baseProperties.getPriorityMultiplier() : 1.0;
-
-        } catch (Exception e) {
-            LOGGER.error("Error fetching priority multiplier", e);
-            throw new RuntimeException("Error fetching priority multiplier", e);
-        }
+        LOGGER.debug("Fetching priority multiplier for priority: {}", priority);
+        return priority ? baseProperties.getPriorityMultiplier() : 1.0;
     }
 
 }

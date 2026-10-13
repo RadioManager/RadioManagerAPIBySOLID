@@ -6,9 +6,10 @@ import cs.vsu.radiomanagerapibysolid.service.inter.AuthService;
 import cs.vsu.radiomanagerapibysolid.service.inter.ResetService;
 import cs.vsu.radiomanagerapibysolid.service.inter.UserService;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
@@ -16,7 +17,7 @@ import org.springframework.stereotype.Service;
 import java.util.Optional;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class ResetServiceImpl implements ResetService {
 
     private final Logger LOGGER = LoggerFactory.getLogger(ResetServiceImpl.class);
@@ -29,6 +30,10 @@ public class ResetServiceImpl implements ResetService {
 
     private final JavaMailSender mailSender;
 
+    @Value("${spring.mail.username}")
+    private String mailFrom;
+
+    @Override
     public void sendPasswordReset(String email) {
         LOGGER.info("Starting password reset process for email: {}", email);
 
@@ -53,13 +58,14 @@ public class ResetServiceImpl implements ResetService {
 
     private void sendEmail(String email, String subject, String text) {
         SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom("${spring.mail.username}");
+        message.setFrom(mailFrom);
         message.setTo(email);
         message.setSubject(subject);
         message.setText(text);
         mailSender.send(message);
     }
 
+    @Override
     public boolean updatePasswordByLogin(@NotNull String login, @NotNull String password) {
         LOGGER.info("Updating password by login: {}", login);
         Optional<UserDto> userOptional = Optional.ofNullable(userService.getUserByLogin(login));
@@ -71,6 +77,7 @@ public class ResetServiceImpl implements ResetService {
         return false;
     }
 
+    @Override
     public boolean updatePasswordById(Long userId, String newPassword) {
         LOGGER.info("Updating password for user ID: {}", userId);
         Optional<UserDto> userOptional = Optional.ofNullable(userService.getUserById(userId));

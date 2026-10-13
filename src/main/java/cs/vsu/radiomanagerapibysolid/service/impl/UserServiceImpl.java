@@ -31,11 +31,13 @@ public class UserServiceImpl implements UserService {
 
     private final SystemEntityProperties systemEntityProperties;
 
+    @Override
     public List<UserDto> getAllUsers() {
         LOGGER.debug("Fetching all users");
         return mapper.toDtoList(userRep.findAll());
     }
 
+    @Override
     public UserDto getUserById(Long id) {
         LOGGER.debug("Fetching user with password by id: {}", id);
         return userRep.findById(id)
@@ -43,11 +45,13 @@ public class UserServiceImpl implements UserService {
                 .orElse(null);
     }
 
+    @Override
     public List<UserDto> getUsersByRole(Role role) {
         LOGGER.debug("Fetching users by role: {}", role);
         return mapper.toDtoList(userRep.findByRole(role));
     }
 
+    @Override
     public UserDto getUserByLogin(String login) {
         LOGGER.debug("Fetching user without password by login: {}", login);
         return userRep.findByLogin(login)
@@ -55,9 +59,11 @@ public class UserServiceImpl implements UserService {
                 .orElse(null);
     }
 
+    @Override
     public UserDto createUser(UserDto userDto) {
         try {
             User user = mapper.toEntity(userDto);
+            user.setId(null);
             user.setPassword(passwordEncoder.encode(userDto.getPassword()));
             user = userRep.save(user);
             LOGGER.info("User created: {}", userDto.getLogin());
@@ -68,6 +74,7 @@ public class UserServiceImpl implements UserService {
         }
     }
 
+    @Override
     public boolean deleteUser(Long id) {
         try {
             Optional<User> user = userRep.findById(id);
@@ -84,6 +91,7 @@ public class UserServiceImpl implements UserService {
         }
     }
 
+    @Override
     public UserDto updateUser(@NonNull UserDto userDTO) {
         Optional<User> existingUserOptional = userRep.findById(userDTO.getId());
         if (existingUserOptional.isPresent()) {
@@ -97,6 +105,7 @@ public class UserServiceImpl implements UserService {
         return null;
     }
 
+    @Override
     public boolean updatePassword(Long userId, String newPassword) {
         Optional<User> existingUserOptional = userRep.findById(userId);
         if (existingUserOptional.isPresent()) {
@@ -110,6 +119,7 @@ public class UserServiceImpl implements UserService {
         return false;
     }
 
+    @Override
     public boolean updateBalance(Long userId, Double balance) {
         Optional<User> existingUserOptional = userRep.findById(userId);
         if (existingUserOptional.isPresent()) {
@@ -123,11 +133,13 @@ public class UserServiceImpl implements UserService {
         return false;
     }
 
+    @Override
     public Role getRoleById(Long id) {
         LOGGER.debug("Getting role by id: {}", id);
         return getUserById(id).getRole();
     }
 
+    @Override
     public UserDto getSystemEntity() {
         LOGGER.debug("Fetching system entity");
         try {

@@ -37,7 +37,6 @@ public class AdminInitConfig {
         return args -> {
             if (!authService.checkEmailExists(adminLogin)) {
                 UserDto admin = new UserDto();
-//                admin.setId((long) 2);
                 admin.setLogin(adminLogin);
                 admin.setPassword(adminPassword);
                 admin.setName(adminName);

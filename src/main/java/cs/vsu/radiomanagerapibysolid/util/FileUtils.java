@@ -6,7 +6,6 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -15,11 +14,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
 
-@Component
-
-public class FileUtils {
+public final class FileUtils {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FileUtils.class);
+
+    private FileUtils(){
+    }
 
     public static ResponseEntity<Resource> getFileResponse(byte[] fileData, String filename) {
         if (fileData != null) {
@@ -80,7 +80,7 @@ public class FileUtils {
         }
     }
 
-    public static boolean deleteAudio(String filename, Path directory) {
+    public static boolean deleteFile(String filename, Path directory) {
         try {
             Path filepath = directory.resolve(filename);
             Files.deleteIfExists(filepath);

@@ -23,11 +23,13 @@ public class CityServiceImpl implements CityService {
 
     private CityMapper mapper;
 
+    @Override
     public List<CityDto> getAllCity() {
         LOGGER.debug("Fetching all cities");
         return mapper.toDtoList(cityRep.findAll());
     }
 
+    @Override
     public CityDto getCityById(Long id) {
         LOGGER.debug("Fetching city by id: {}", id);
         return cityRep.findById(id)
@@ -35,6 +37,7 @@ public class CityServiceImpl implements CityService {
                 .orElse(null);
     }
 
+    @Override
     public CityDto getCityByNameAndRegion(String name, String region) {
         LOGGER.debug("Fetching city by name: {} and region: {}", name, region);
         return cityRep.findByNameAndRegion(name, region)
@@ -42,20 +45,25 @@ public class CityServiceImpl implements CityService {
                 .orElse(null);
     }
 
+    @Override
     public List<CityDto> getCityByRegion(String region) {
         LOGGER.debug("Fetching city by region: {}", region);
         return mapper.toDtoList(cityRep.findByRegion(region));
     }
 
+    @Override
     public List<CityDto> getCityByName(String name) {
         LOGGER.debug("Fetching city by name: {}", name);
         return mapper.toDtoList(cityRep.findByName(name));
     }
 
+    @Override
     public CityDto createCity(CityDto cityDto) {
         LOGGER.debug("Creating city: {}", cityDto);
         try {
-            City city = cityRep.save(mapper.toEntity(cityDto));
+            City city = mapper.toEntity(cityDto);
+            city.setId(null);
+            city = cityRep.save(city);
             LOGGER.debug("City created: {}", city);
             return mapper.toDto(city);
         } catch (Exception e) {
@@ -64,6 +72,7 @@ public class CityServiceImpl implements CityService {
         }
     }
 
+    @Override
     public CityDto updateCity(CityDto cityDto) {
         LOGGER.debug("Updating city: {}", cityDto);
         try {
@@ -83,6 +92,7 @@ public class CityServiceImpl implements CityService {
         }
     }
 
+    @Override
     public boolean deleteCity(Long id) {
         LOGGER.debug("Deleting city by id: {}", id);
         try {

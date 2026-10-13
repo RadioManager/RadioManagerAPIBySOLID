@@ -37,8 +37,7 @@ public class WebSecurityConfig {
                 .cors(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(
-                                "/auth/**",
-                                "/css/**"
+                                "/auth/**"
                         ).permitAll()
                         .requestMatchers(
                                 "/swagger-ui.html",
@@ -50,9 +49,7 @@ public class WebSecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
-                .logout(logout -> logout
-                        .logoutSuccessUrl("/")
-                        .permitAll());
+                .logout(AbstractHttpConfigurer::disable);
 
         return http.build();
     }
