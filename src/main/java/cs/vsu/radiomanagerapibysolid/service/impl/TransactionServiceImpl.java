@@ -5,6 +5,7 @@ import cs.vsu.radiomanagerapibysolid.mapper.TransactionMapper;
 import cs.vsu.radiomanagerapibysolid.model.Transaction;
 import cs.vsu.radiomanagerapibysolid.repository.TransactionRep;
 import cs.vsu.radiomanagerapibysolid.service.inter.TransactionService;
+import cs.vsu.radiomanagerapibysolid.service.inter.UserService;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +24,9 @@ public class TransactionServiceImpl implements TransactionService {
     private final TransactionRep transactionRep;
 
     private final TransactionMapper mapper;
+
+    // TODO(ревью): новая зависимость — нужна createSystemTransaction, чтобы найти системную сущность
+    private final UserService userService;
 
     @Override
     public List<TransactionDto> getAllTransactions() {
@@ -70,6 +74,17 @@ public class TransactionServiceImpl implements TransactionService {
         newTransaction = transactionRep.save(newTransaction);
         LOGGER.debug("Transaction created: {}", newTransaction);
         return mapper.toDto(newTransaction);
+    }
+
+    // TODO(ревью): перенесено из старого TransactionController.createSystemTransaction (POST /transaction/system):
+    //   контроллер сам подставлял adminId = id системной сущности и вызывал createTransaction. Логика та же.
+    //   Если системной сущности нет в БД, getSystemEntity бросает IllegalStateException → 500 (это ошибка
+    //   конфигурации сервера, а не клиента).
+    @Override
+    public TransactionDto createSystemTransaction(TransactionDto transactionDto) {
+        LOGGER.debug("Creating system transaction: {}", transactionDto);
+        transactionDto.setAdminId(userService.getSystemEntity().getId());
+        return createTransaction(transactionDto);
     }
 
     @Override
