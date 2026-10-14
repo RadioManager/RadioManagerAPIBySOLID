@@ -1,6 +1,7 @@
 package cs.vsu.radiomanagerapibysolid.service.impl;
 
 import cs.vsu.radiomanagerapibysolid.dto.RadioStationDto;
+import cs.vsu.radiomanagerapibysolid.exception.ConflictException;
 import cs.vsu.radiomanagerapibysolid.mapper.RadioStationMapper;
 import cs.vsu.radiomanagerapibysolid.model.RadioStation;
 import cs.vsu.radiomanagerapibysolid.repository.RadioStationRep;
@@ -69,6 +70,10 @@ public class RadioStationServiceImpl implements RadioStationService {
     @Override
     public RadioStationDto createRadioStation(RadioStationDto radioStationDto) {
         LOGGER.debug("Creating radio station: {}", radioStationDto);
+        if (radioStationRep.findByRepresentativeId(radioStationDto.getRepresentativeId()).isPresent()) {
+            throw new ConflictException("Representative " + radioStationDto.getRepresentativeId()
+                    + " already has a radio station");
+        }
         RadioStation newRadioStation = mapper.toEntity(radioStationDto);
         newRadioStation.setId(null);
         newRadioStation = radioStationRep.save(newRadioStation);
