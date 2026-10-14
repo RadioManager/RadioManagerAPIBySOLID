@@ -1,5 +1,6 @@
 package cs.vsu.radiomanagerapibysolid.service.impl;
 
+import cs.vsu.radiomanagerapibysolid.model.auth.AuthModel;
 import cs.vsu.radiomanagerapibysolid.service.inter.AccessService;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -11,7 +12,10 @@ public class AccessServiceImpl implements AccessService {
     @Override
     public Long getCurrentUserId() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        return (Long) auth.getPrincipal();
+        if (auth instanceof AuthModel authModel) {
+            return authModel.getUserId();
+        }
+        return null;
     }
 
     @Override
@@ -19,7 +23,7 @@ public class AccessServiceImpl implements AccessService {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         boolean isAdmin = auth.getAuthorities().stream()
                 .anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN"));
-        return isAdmin || getCurrentUserId().equals(userId);
+        return isAdmin || (userId != null && userId.equals(getCurrentUserId()));
     }
 
 }
