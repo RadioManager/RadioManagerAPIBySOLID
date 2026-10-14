@@ -162,8 +162,6 @@ public class BroadcastSlotServiceImpl implements BroadcastSlotService {
         return false;
     }
 
-    // TODO(диплом): удаляет и OCCUPIED-слоты вместе с оплаченными размещениями (каскад) — та же проблема,
-    //   что в replaceFutureSlots. Используется там и в админском DELETE /broadcast-slot/station/{id}/after.
     @Override
     public boolean deleteBroadcastSlotsByRadioStationAfterStartTime(
             Long radioStationId, LocalDateTime startTime) {
@@ -256,13 +254,6 @@ public class BroadcastSlotServiceImpl implements BroadcastSlotService {
         return splitBroadcastSlot(slotId, newEndTime);
     }
 
-    // TODO(диплом): удаляются и OCCUPIED-слоты, а с ними каскадом (ON DELETE CASCADE) оплаченные размещения —
-    //   деньги рекламодателю не возвращаются. Варианты на диплом:
-    //     - оплаченное важнее нового расписания: удалять только AVAILABLE, новые интервалы, пересекающиеся
-    //       с занятыми слотами, обрезать (вычесть занятое время, если остаток >= min-slot-duration),
-    //       а в ответе возвращать список того, что не применилось;
-    //     - или отменять пересекающиеся размещения с возвратом денег и транзакцией возврата — для этого
-    //       сначала хранить цену в placement (миграция: колонка price), сейчас она только пересчитывается.
     @Override
     public List<BroadcastSlotDto> replaceFutureSlots(Long radioStationId,
                                                      List<Pair<LocalDateTime, LocalDateTime>> timePairs) {

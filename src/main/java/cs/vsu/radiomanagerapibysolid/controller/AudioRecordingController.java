@@ -52,11 +52,6 @@ public class AudioRecordingController {
         return ResponseEntity.ok(audioRecordings);
     }
 
-    // TODO(диплом): получить и скачать (/download) любую запись может любой вошедший пользователь.
-    //   Сузить до «владелец, админ или представитель станции, где эта запись размещена» — представителю
-    //   запись нужна (SlotsList.vue проигрывает рекламу в его слотах), поэтому простого
-    //   isRecordingOwnerOrAdmin тут мало. Проверку размещения делать через PlacementRep, а не PlacementService:
-    //   PlacementServiceImpl сам зависит от AccessService, и получится циклическая зависимость.
     @GetMapping("/{id}")
     @PreAuthorize("isAuthenticated()")
     @Operation(
@@ -114,8 +109,6 @@ public class AudioRecordingController {
         return ResponseEntity.ok(recordings);
     }
 
-    // TODO(диплом): запись в БД создаётся до сохранения файла на диск. Если saveFile упадёт (ошибка диска,
-    //   запрещённые символы в имени), в БД останется запись без файла — /download по ней вернёт 404.
     @PostMapping
     @PreAuthorize("hasAnyRole('ADVERTISER', 'ADMIN')")
     @Operation(
@@ -161,8 +154,6 @@ public class AudioRecordingController {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
 
-    // TODO(диплом): вместе с записью каскадом (ON DELETE CASCADE) удаляются её размещения, в том числе
-    //   оплаченные — та же проблема, что в BroadcastSlotServiceImpl.replaceFutureSlots.
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADVERTISER', 'ADMIN') and @accessService.isRecordingOwnerOrAdmin(#id)")
     @Operation(
@@ -199,7 +190,6 @@ public class AudioRecordingController {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
 
-    // TODO(диплом): см. TODO у GET /{id} — те же права
     @GetMapping("/{id}/download")
     @PreAuthorize("isAuthenticated()")
     @Operation(

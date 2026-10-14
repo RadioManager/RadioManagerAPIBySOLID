@@ -89,10 +89,6 @@ public class PlacementController {
         return ResponseEntity.ok(created);
     }
 
-    // TODO(диплом): в старом проекте менять и удалять размещения мог любой рекламодатель, причём любые.
-    //   PUT при этом обходит все проверки (PlacementValidator) и оплату, а DELETE не освобождает слот и не
-    //   возвращает деньги. Фронт эти запросы не вызывает, поэтому пока оба только для ADMIN. На диплом —
-    //   «отмена своего размещения» для рекламодателя: освободить слот (AVAILABLE) и BillingService.refund(...).
     @PutMapping
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Update placement", description = "Updates an existing placement.")

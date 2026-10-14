@@ -28,9 +28,6 @@ public class BillingServiceImpl implements BillingService {
 
     private final TransactionService transactionService;
 
-    // TODO(диплом): деньги хранятся в Double — копейки могут «поплыть» при округлении; для денег правильнее
-    //   BigDecimal. И проверка баланса не защищена от двух одновременных списаний у одного пользователя
-    //   (оба увидят старый баланс) — лечится оптимистической блокировкой (@Version в User).
     @Override
     public void charge(Long userId, double amount, String description) {
         UserDto user = getUserOrThrow(userId);
@@ -43,8 +40,6 @@ public class BillingServiceImpl implements BillingService {
         LOGGER.info("Charged {} from user {}: {}", amount, userId, description);
     }
 
-    // TODO(диплом): оплата картой на фронте (CreateTopUpModal.vue) — заглушка, деньги зачисляются без
-    //   проверки платежа. Для настоящего проекта нужен платёжный шлюз.
     @Override
     public TransactionDto topUp(Long userId, double amount) {
         if (amount <= 0) {
