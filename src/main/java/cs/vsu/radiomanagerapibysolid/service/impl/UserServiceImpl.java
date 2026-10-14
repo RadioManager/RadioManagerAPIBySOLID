@@ -63,7 +63,6 @@ public class UserServiceImpl implements UserService {
     public UserDto createUser(UserDto userDto) {
         User user = mapper.toEntity(userDto);
         user.setId(null);
-        user.setPassword(passwordEncoder.encode(userDto.getPassword()));
         user = userRep.save(user);
         LOGGER.info("User created: {}", userDto.getLogin());
         return mapper.toDto(user);
