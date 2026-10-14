@@ -79,13 +79,6 @@ public class PlacementServiceImpl implements PlacementService {
         return mapper.toDto(placementRep.findByBroadcastSlotId(id).orElse(null));
     }
 
-    // TODO(ревью): сценарий создания размещения. В старом проекте всё было в PlacementController, потом
-    //   временно в этом методе; теперь каждая часть в своём классе (SRP):
-    //     - права (своя запись или ADMIN) — @PreAuthorize в PlacementController;
-    //     - бизнес-правила (запись одобрена, слот свободен, запись влезает) — PlacementValidator;
-    //     - цена (прайм-тайм × множитель) — PricingService;
-    //     - деньги (проверка баланса, списание, системная транзакция) — BillingService. Платит владелец записи.
-    //   Метод под @Transactional: если charge бросит «не хватает денег», откатятся и размещение, и статус слота.
     @Override
     public PlacementDto createPlacement(PlacementDto placementDto) {
         LOGGER.debug("Creating placement {}", placementDto);

@@ -42,7 +42,6 @@ public class ExcelServiceImpl implements DataTableService {
         return FileUtils.saveFile(file, Path.of(excelFilesDir), fileId);
     }
 
-    // TODO(ревью): сигнатуры поменялись вместе с FileService (id + исходное имя вместо готового имени на диске)
     @Override
     public byte[] getFile(Long fileId, String originalFilename) {
         return FileUtils.getFile(FileUtils.generateUniqueFilename(fileId, originalFilename), Path.of(excelFilesDir));

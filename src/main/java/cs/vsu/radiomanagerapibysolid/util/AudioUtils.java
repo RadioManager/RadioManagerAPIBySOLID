@@ -19,8 +19,6 @@ public final class AudioUtils {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AudioUtils.class);
 
-    // TODO(ревью): новая константа — в Spring нет готового MediaType для mp3. Передаётся в
-    //   FileUtils.getFileResponse(..., AudioUtils.AUDIO_MPEG) при отдаче файла записи.
     public static final MediaType AUDIO_MPEG = MediaType.valueOf("audio/mpeg");
 
     private AudioUtils(){

@@ -40,10 +40,8 @@ public class BroadcastSlotServiceImpl implements BroadcastSlotService {
 
     private final BaseProperties baseProperties;
 
-    // TODO(ревью): новая зависимость — нужна splitBroadcastSlotByAudio, чтобы узнать длительность записи
     private final AudioRecordingService audioRecordingService;
 
-    // TODO(ревью): новая зависимость — проверка «прайм-тайм» в getEmptyBroadcastSlotsByPriorityWithRadioStation
     private final PricingService pricingService;
 
     @Override
@@ -108,7 +106,6 @@ public class BroadcastSlotServiceImpl implements BroadcastSlotService {
         LOGGER.debug("Fetching broadcast slot by radio station with id: {} and high priority is {}",
                 radioStationId, highPriority);
         List<BroadcastSlotDto> slots = getBroadcastSlotsByRadioStationIdWithStatus(radioStationId, Status.AVAILABLE);
-        // TODO(ревью): проверка «прайм-тайм» теперь одна — в PricingService, раньше тут была её копия
         return slots.stream()
                 .filter(slot -> pricingService.isHighPriority(slot.getStartTime()) == highPriority)
                 .toList();
@@ -244,11 +241,6 @@ public class BroadcastSlotServiceImpl implements BroadcastSlotService {
         return mapper.toDto(updatedBroadcastSlot);
     }
 
-    // TODO(ревью): перенесено из старого BroadcastSlotController.splitBroadcastSlot (POST /broadcast-slot/split).
-    //   Контроллер искал слот и запись (null → 404), считал newEndTime = начало слота + длительность записи
-    //   и вызывал splitBroadcastSlot. Логика та же, только «не найдено» теперь через NotFoundException.
-    //   Статус слота (AVAILABLE) тут специально НЕ проверяется: фронт вызывает split ПОСЛЕ createPlacement,
-    //   когда слот уже OCCUPIED.
     @Override
     public BroadcastSlotDto splitBroadcastSlotByAudio(Long slotId, Long audioId) {
         LOGGER.debug("Splitting broadcast slot {} by duration of audio recording {}", slotId, audioId);
@@ -264,14 +256,6 @@ public class BroadcastSlotServiceImpl implements BroadcastSlotService {
         return splitBroadcastSlot(slotId, newEndTime);
     }
 
-    // TODO(ревью): перенесено из старого BroadcastSlotController.createSlotsFromExcel (POST /broadcast-slot/excel)
-    //   без изменения поведения: интервалы из таблицы → отбросить начавшиеся в прошлом → отсортировать →
-    //   удалить ВСЕ будущие слоты станции → создать новые. Чтение Excel осталось снаружи (контроллер вызывает
-    //   DataTableService.getTimeFromTable и передаёт сюда готовые пары) — слотам незачем знать про файлы.
-    //   Единственное техническое добавление — flush() после удаления: раньше удаление и создание шли двумя
-    //   разными транзакциями (два вызова из контроллера), а тут одна, и без flush Hibernate выполнил бы
-    //   INSERT новых слотов раньше DELETE старых → при совпадающих интервалах упал бы UNIQUE
-    //   (start_time, end_time, radio_station_id).
     // TODO(диплом): удаляются и OCCUPIED-слоты, а с ними каскадом (ON DELETE CASCADE) оплаченные размещения —
     //   деньги рекламодателю не возвращаются. Варианты на диплом:
     //     - оплаченное важнее нового расписания: удалять только AVAILABLE, новые интервалы, пересекающиеся

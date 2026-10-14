@@ -43,10 +43,8 @@ public interface BroadcastSlotService {
 
     BroadcastSlotDto splitBroadcastSlot(Long id, LocalDateTime newEndTime);
 
-    // TODO(ревью): новый метод — бывшая логика старого BroadcastSlotController.splitBroadcastSlot
     BroadcastSlotDto splitBroadcastSlotByAudio(Long slotId, Long audioId);
 
-    // TODO(ревью): новый метод — бывшая логика старого BroadcastSlotController.createSlotsFromExcel
     List<BroadcastSlotDto> replaceFutureSlots(Long radioStationId, List<Pair<LocalDateTime, LocalDateTime>> timePairs);
 
     List<BroadcastSlotDto> getBroadcastSlotsByMonth(int year, int month);
