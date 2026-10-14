@@ -22,6 +22,8 @@ public class BillingServiceImpl implements BillingService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BillingServiceImpl.class);
 
+    private static final String TOP_UP_DESCRIPTION = "Пополнение счета";
+
     private final UserService userService;
 
     private final TransactionService transactionService;
@@ -31,24 +33,46 @@ public class BillingServiceImpl implements BillingService {
     //   (оба увидят старый баланс) — лечится оптимистической блокировкой (@Version в User).
     @Override
     public void charge(Long userId, double amount, String description) {
-        UserDto user = userService.getUserById(userId);
-        if (user == null) {
-            throw new NotFoundException("User not found: " + userId);
-        }
+        UserDto user = getUserOrThrow(userId);
         if (user.getBalance() < amount) {
             throw new ConflictException("Insufficient balance: " + user.getBalance() + ", required: " + amount);
         }
 
         userService.updateBalance(userId, user.getBalance() - amount);
+        recordSystemTransaction(userId, -amount, description);
+        LOGGER.info("Charged {} from user {}: {}", amount, userId, description);
+    }
 
+    // TODO(диплом): оплата картой на фронте (CreateTopUpModal.vue) — заглушка, деньги зачисляются без
+    //   проверки платежа. Для настоящего проекта нужен платёжный шлюз.
+    @Override
+    public TransactionDto topUp(Long userId, double amount) {
+        if (amount <= 0) {
+            throw new IllegalArgumentException("Top-up amount must be positive");
+        }
+        UserDto user = getUserOrThrow(userId);
+
+        userService.updateBalance(userId, user.getBalance() + amount);
+        TransactionDto transaction = recordSystemTransaction(userId, amount, TOP_UP_DESCRIPTION);
+        LOGGER.info("Topped up {} to user {}", amount, userId);
+        return transaction;
+    }
+
+    private UserDto getUserOrThrow(Long userId) {
+        UserDto user = userService.getUserById(userId);
+        if (user == null) {
+            throw new NotFoundException("User not found: " + userId);
+        }
+        return user;
+    }
+
+    private TransactionDto recordSystemTransaction(Long userId, double amount, String description) {
         TransactionDto transaction = new TransactionDto();
         transaction.setUserId(userId);
-        transaction.setAmount(-amount);
+        transaction.setAmount(amount);
         transaction.setTransactionDate(LocalDateTime.now());
         transaction.setDescription(description);
-        transactionService.createSystemTransaction(transaction);
-
-        LOGGER.info("Charged {} from user {}: {}", amount, userId, description);
+        return transactionService.createSystemTransaction(transaction);
     }
 
 }
