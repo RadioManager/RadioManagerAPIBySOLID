@@ -12,6 +12,7 @@ import cs.vsu.radiomanagerapibysolid.service.inter.AccessService;
 import cs.vsu.radiomanagerapibysolid.service.inter.AuthService;
 import cs.vsu.radiomanagerapibysolid.service.inter.ResetService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/auth")
+@Tag(name = "Auth", description = "Login, registration, logout and password reset")
 @AllArgsConstructor
 public class AuthController {
 

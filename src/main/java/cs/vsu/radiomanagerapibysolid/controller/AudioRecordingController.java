@@ -9,12 +9,16 @@ import cs.vsu.radiomanagerapibysolid.service.inter.PricingService;
 import cs.vsu.radiomanagerapibysolid.util.AudioUtils;
 import cs.vsu.radiomanagerapibysolid.util.FileUtils;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.StringUtils;
@@ -27,6 +31,7 @@ import java.util.Objects;
 
 @RestController
 @RequestMapping("/audio-recording")
+@Tag(name = "Audio recordings", description = "Upload, moderation and download of advertising audio")
 @AllArgsConstructor
 public class AudioRecordingController {
 
@@ -87,7 +92,8 @@ public class AudioRecordingController {
             summary = "Get audio recordings by approval status",
             description = "Returns all audio recordings filtered by the given approval status (APPROVED, PENDING, REJECTED)."
     )
-    public ResponseEntity<List<AudioRecordingDto>> getRecordingsByStatus(@PathVariable String status) {
+    public ResponseEntity<List<AudioRecordingDto>> getRecordingsByStatus(
+            @PathVariable @Parameter(schema = @Schema(implementation = ApprovalStatus.class)) String status) {
         LOGGER.info("Fetching audio recordings with status: {}", status);
         ApprovalStatus approvalStatus = ApprovalStatus.valueOf(status.toUpperCase());
         List<AudioRecordingDto> recordings = audioRecordingService.getRecordingByStatus(approvalStatus);
@@ -101,7 +107,7 @@ public class AudioRecordingController {
             description = "Returns audio recordings filtered by approval status and user ID extracted from request headers. Headers: 'approvalStatus' and 'userId'."
     )
     public ResponseEntity<List<AudioRecordingDto>> getRecordingsByStatusAndUserId(
-            @RequestHeader("approvalStatus") String status,
+            @RequestHeader("approvalStatus") @Parameter(schema = @Schema(implementation = ApprovalStatus.class)) String status,
             @RequestHeader("userId") Long userId) {
         LOGGER.info("Fetching audio recordings with status {} for user {}", status, userId);
         ApprovalStatus approvalStatus = ApprovalStatus.valueOf(status.toUpperCase());
@@ -109,7 +115,7 @@ public class AudioRecordingController {
         return ResponseEntity.ok(recordings);
     }
 
-    @PostMapping
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasAnyRole('ADVERTISER', 'ADMIN')")
     @Operation(
             summary = "Create new audio recording",
@@ -178,7 +184,9 @@ public class AudioRecordingController {
             summary = "Update audio recording status",
             description = "Updates the approval status of an audio recording by its ID. Valid statuses: APPROVED, PENDING, REJECTED."
     )
-    public ResponseEntity<AudioRecordingDto> updateRecordingStatus(@PathVariable Long id, @RequestParam String status) {
+    public ResponseEntity<AudioRecordingDto> updateRecordingStatus(
+            @PathVariable Long id,
+            @RequestParam @Parameter(schema = @Schema(implementation = ApprovalStatus.class)) String status) {
         LOGGER.info("Updating status of audio recording {} to {}", id, status);
         ApprovalStatus approvalStatus = ApprovalStatus.valueOf(status.toUpperCase());
         AudioRecordingDto updated = audioRecordingService.updateRecordingStatus(id, approvalStatus);

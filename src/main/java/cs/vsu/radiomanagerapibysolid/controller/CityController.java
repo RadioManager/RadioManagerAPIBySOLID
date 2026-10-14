@@ -3,6 +3,7 @@ package cs.vsu.radiomanagerapibysolid.controller;
 import cs.vsu.radiomanagerapibysolid.dto.CityDto;
 import cs.vsu.radiomanagerapibysolid.service.inter.CityService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
@@ -16,6 +17,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/city")
+@Tag(name = "Cities", description = "Cities of radio stations")
 @AllArgsConstructor
 public class CityController {
 

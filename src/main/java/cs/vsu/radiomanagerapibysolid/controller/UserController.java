@@ -4,6 +4,9 @@ import cs.vsu.radiomanagerapibysolid.dto.UserDto;
 import cs.vsu.radiomanagerapibysolid.model.enumerate.Role;
 import cs.vsu.radiomanagerapibysolid.service.inter.UserService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
@@ -18,6 +21,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/user")
+@Tag(name = "Users", description = "User management")
 @AllArgsConstructor
 public class UserController {
 
@@ -78,7 +82,8 @@ public class UserController {
             summary = "Get users by role",
             description = "Retrieves a list of users with the specified role."
     )
-    public ResponseEntity<?> getUsersByRole(@PathVariable String role) {
+    public ResponseEntity<?> getUsersByRole(
+            @PathVariable @Parameter(schema = @Schema(implementation = Role.class)) String role) {
         LOGGER.info("Fetching users with role: {}", role);
         Role roleEnum = Role.valueOf(role.toUpperCase());
         List<UserDto> users = userService.getUsersByRole(roleEnum);

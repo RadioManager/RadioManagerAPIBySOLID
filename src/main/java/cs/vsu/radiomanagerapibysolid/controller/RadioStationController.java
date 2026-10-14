@@ -3,6 +3,7 @@ package cs.vsu.radiomanagerapibysolid.controller;
 import cs.vsu.radiomanagerapibysolid.dto.RadioStationDto;
 import cs.vsu.radiomanagerapibysolid.service.inter.RadioStationService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
@@ -17,6 +18,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/radio-station")
+@Tag(name = "Radio stations", description = "Radio stations and their representatives")
 @AllArgsConstructor
 public class RadioStationController {
 

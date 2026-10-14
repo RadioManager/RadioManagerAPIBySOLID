@@ -3,6 +3,7 @@ package cs.vsu.radiomanagerapibysolid.controller;
 import cs.vsu.radiomanagerapibysolid.dto.PlacementDto;
 import cs.vsu.radiomanagerapibysolid.service.inter.PlacementService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
@@ -18,6 +19,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/placement")
+@Tag(name = "Placements", description = "Placing advertising into broadcast slots")
 @AllArgsConstructor
 public class PlacementController {
 

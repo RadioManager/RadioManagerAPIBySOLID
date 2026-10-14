@@ -6,12 +6,16 @@ import cs.vsu.radiomanagerapibysolid.service.inter.BroadcastSlotService;
 import cs.vsu.radiomanagerapibysolid.service.inter.DataTableService;
 import cs.vsu.radiomanagerapibysolid.service.inter.PricingService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -23,6 +27,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/broadcast-slot")
+@Tag(name = "Broadcast slots", description = "Broadcast schedule of radio stations")
 @AllArgsConstructor
 public class BroadcastSlotController {
 
@@ -92,7 +97,8 @@ public class BroadcastSlotController {
             summary = "Get broadcast slots by status",
             description = "Retrieves a list of broadcast slots filtered by their status."
     )
-    public ResponseEntity<List<BroadcastSlotDto>> getBroadcastSlotsByStatus(@PathVariable String status) {
+    public ResponseEntity<List<BroadcastSlotDto>> getBroadcastSlotsByStatus(
+            @PathVariable @Parameter(schema = @Schema(implementation = Status.class)) String status) {
         LOGGER.info("Fetching broadcast slots with status: {}", status);
         Status slotStatus = Status.valueOf(status.toUpperCase());
         List<BroadcastSlotDto> slots = broadcastSlotService.getBroadcastSlotsByStatus(slotStatus);
@@ -141,7 +147,7 @@ public class BroadcastSlotController {
     )
     public ResponseEntity<List<BroadcastSlotDto>> getBroadcastSlotsByStatusAfterStartTime(
             @PathVariable Long radioStationId,
-            @RequestParam String status,
+            @RequestParam @Parameter(schema = @Schema(implementation = Status.class)) String status,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startTime) {
         LOGGER.info("Fetching broadcast slots for radio station {} with status {} after {}",
                 radioStationId, status, startTime);
@@ -171,7 +177,7 @@ public class BroadcastSlotController {
     )
     public ResponseEntity<List<BroadcastSlotDto>> getBroadcastSlotsByStatusAndRadioStationId(
             @PathVariable Long radioStationId,
-            @PathVariable String status) {
+            @PathVariable @Parameter(schema = @Schema(implementation = Status.class)) String status) {
         LOGGER.info("Fetching slots for station {} with status: {}", radioStationId, status);
         Status slotStatus = Status.valueOf(status.toUpperCase());
         List<BroadcastSlotDto> slots = broadcastSlotService.getBroadcastSlotsByRadioStationIdWithStatus(
@@ -194,7 +200,7 @@ public class BroadcastSlotController {
         return ResponseEntity.ok(slots);
     }
 
-    @PostMapping("/excel")
+    @PostMapping(value = "/excel", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasAnyRole('RADIO_REPRESENTATIVE', 'ADMIN')"
             + " and @accessService.isStationOwnerOrAdmin(#radioStationId)")
     @Operation(
@@ -282,7 +288,9 @@ public class BroadcastSlotController {
             summary = "Update broadcast slot status",
             description = "Updates the status of a broadcast slot by its ID. Valid statuses are defined in the Status enumeration."
     )
-    public ResponseEntity<BroadcastSlotDto> updateBroadcastSlotStatus(@PathVariable Long id, @RequestParam String status) {
+    public ResponseEntity<BroadcastSlotDto> updateBroadcastSlotStatus(
+            @PathVariable Long id,
+            @RequestParam @Parameter(schema = @Schema(implementation = Status.class)) String status) {
         LOGGER.info("Updating status of broadcast slot {} to {}", id, status);
         Status newStatus = Status.valueOf(status.toUpperCase());
         BroadcastSlotDto updated = broadcastSlotService.updateBroadcastSlotStatus(id, newStatus);

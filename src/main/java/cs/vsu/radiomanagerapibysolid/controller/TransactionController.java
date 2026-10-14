@@ -5,6 +5,7 @@ import cs.vsu.radiomanagerapibysolid.service.inter.AccessService;
 import cs.vsu.radiomanagerapibysolid.service.inter.BillingService;
 import cs.vsu.radiomanagerapibysolid.service.inter.TransactionService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
@@ -20,6 +21,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/transaction")
+@Tag(name = "Transactions", description = "Balance top-up and transaction history")
 @AllArgsConstructor
 public class TransactionController {
 
