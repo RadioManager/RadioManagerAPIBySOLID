@@ -6,4 +6,6 @@ public interface AccessService {
 
     boolean isOwnerOrAdmin(Long userId);
 
+    boolean isStationOwnerOrAdmin(Long stationId);
+
 }
