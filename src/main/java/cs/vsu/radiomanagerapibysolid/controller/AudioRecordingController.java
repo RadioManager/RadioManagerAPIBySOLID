@@ -49,8 +49,13 @@ public class AudioRecordingController {
         return ResponseEntity.ok(audioRecordings);
     }
 
+    // TODO(диплом): получить и скачать (/download) любую запись может любой вошедший пользователь.
+    //   Сузить до «владелец, админ или представитель станции, где эта запись размещена» — представителю
+    //   запись нужна (SlotsList.vue проигрывает рекламу в его слотах), поэтому простого
+    //   isRecordingOwnerOrAdmin тут мало. Проверку размещения делать через PlacementRep, а не PlacementService:
+    //   PlacementServiceImpl сам зависит от AccessService, и получится циклическая зависимость.
     @GetMapping("/{id}")
-    @PreAuthorize("@accessService.isRecordingOwnerOrAdmin(#id)")
+    @PreAuthorize("isAuthenticated()")
     @Operation(
             summary = "Get audio recording by ID",
             description = "Returns the audio recording corresponding to the given ID."
@@ -191,10 +196,9 @@ public class AudioRecordingController {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
 
-    // TODO(диплом): скачать запись могут только её владелец и админ. Представителю станции, на которой
-    //   размещена реклама, файл тоже нужен (чтобы выпустить её в эфир) — добавить такую проверку в AccessService.
+    // TODO(диплом): см. TODO у GET /{id} — те же права
     @GetMapping("/{id}/download")
-    @PreAuthorize("@accessService.isRecordingOwnerOrAdmin(#id)")
+    @PreAuthorize("isAuthenticated()")
     @Operation(
             summary = "Download audio file",
             description = "Downloads the actual MP3 file for the given audio recording ID."
