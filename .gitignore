@@ -39,3 +39,6 @@ out/
 ### Env files ###
 .env*
 data.env
+
+### Uploaded files (audio, schedules) ###
+/uploads/
