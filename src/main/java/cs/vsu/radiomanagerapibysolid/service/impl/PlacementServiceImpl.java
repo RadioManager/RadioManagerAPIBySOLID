@@ -1,30 +1,26 @@
 package cs.vsu.radiomanagerapibysolid.service.impl;
 
-import cs.vsu.radiomanagerapibysolid.config.BaseProperties;
 import cs.vsu.radiomanagerapibysolid.dto.AudioRecordingDto;
 import cs.vsu.radiomanagerapibysolid.dto.BroadcastSlotDto;
 import cs.vsu.radiomanagerapibysolid.dto.PlacementDto;
-import cs.vsu.radiomanagerapibysolid.exception.ConflictException;
 import cs.vsu.radiomanagerapibysolid.exception.NotFoundException;
 import cs.vsu.radiomanagerapibysolid.mapper.PlacementMapper;
 import cs.vsu.radiomanagerapibysolid.model.Placement;
-import cs.vsu.radiomanagerapibysolid.model.enumerate.ApprovalStatus;
 import cs.vsu.radiomanagerapibysolid.model.enumerate.Status;
 import cs.vsu.radiomanagerapibysolid.repository.PlacementRep;
-import cs.vsu.radiomanagerapibysolid.service.inter.AccessService;
 import cs.vsu.radiomanagerapibysolid.service.inter.AudioRecordingService;
+import cs.vsu.radiomanagerapibysolid.service.inter.BillingService;
 import cs.vsu.radiomanagerapibysolid.service.inter.BroadcastSlotService;
 import cs.vsu.radiomanagerapibysolid.service.inter.PlacementService;
+import cs.vsu.radiomanagerapibysolid.service.inter.PricingService;
+import cs.vsu.radiomanagerapibysolid.validator.PlacementValidator;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -35,7 +31,7 @@ public class PlacementServiceImpl implements PlacementService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PlacementServiceImpl.class);
 
-    private final BaseProperties baseProperties;
+    private static final String PLACEMENT_CHARGE_DESCRIPTION = "Размещение рекламы";
 
     private final PlacementRep placementRep;
 
@@ -45,8 +41,11 @@ public class PlacementServiceImpl implements PlacementService {
 
     private final BroadcastSlotService broadcastSlotService;
 
-    // TODO(ревью): новая зависимость — нужна для проверки «запись принадлежит текущему пользователю» в createPlacement
-    private final AccessService accessService;
+    private final PlacementValidator placementValidator;
+
+    private final PricingService pricingService;
+
+    private final BillingService billingService;
 
     @Override
     public List<PlacementDto> getAll() {
@@ -80,52 +79,28 @@ public class PlacementServiceImpl implements PlacementService {
         return mapper.toDto(placementRep.findByBroadcastSlotId(id).orElse(null));
     }
 
-    // TODO(ревью): раньше эта логика жила в старом PlacementController.createPlacement, а сервис только
-    //   сохранял запись. Перенесено из контроллера:
-    //     - проверка «запись длиннее слота» → была 409 → теперь ConflictException (тоже 409). Сравнение
-    //       оставлено как было (>= 0): запись ровно на длину слота тоже считается «не влезает»;
-    //     - перевод слота в OCCUPIED после сохранения.
-    //   Добавлено нового (в старом коде этого не было):
-    //     - слот или запись не найдены → NotFoundException (404), раньше было NPE → 500;
-    //     - слот уже не AVAILABLE → ConflictException (в таблице placement нет UNIQUE на slot_id, поэтому
-    //       раньше один слот можно было продать дважды);
-    //     - запись должна быть APPROVED и принадлежать текущему пользователю (или он ADMIN) → иначе
-    //       ConflictException / AccessDeniedException (403). Фронт и так предлагает только свои одобренные
-    //       записи (loadAllowedRecordings), но без проверки на бэке это обходилось подменой id в запросе.
+    // TODO(ревью): сценарий создания размещения. В старом проекте всё было в PlacementController, потом
+    //   временно в этом методе; теперь каждая часть в своём классе (SRP):
+    //     - права (своя запись или ADMIN) — @PreAuthorize в PlacementController;
+    //     - бизнес-правила (запись одобрена, слот свободен, запись влезает) — PlacementValidator;
+    //     - цена (прайм-тайм × множитель) — PricingService;
+    //     - деньги (проверка баланса, списание, системная транзакция) — BillingService. Платит владелец записи.
+    //   Метод под @Transactional: если charge бросит «не хватает денег», откатятся и размещение, и статус слота.
     @Override
     public PlacementDto createPlacement(PlacementDto placementDto) {
         LOGGER.debug("Creating placement {}", placementDto);
+        BroadcastSlotDto slot = getSlotOrThrow(placementDto.getBroadcastSlotId());
+        AudioRecordingDto audio = getAudioOrThrow(placementDto.getAudioRecordingId());
 
-        BroadcastSlotDto slot = broadcastSlotService.getBroadcastSlotById(placementDto.getBroadcastSlotId());
-        if (slot == null) {
-            throw new NotFoundException("Broadcast slot not found: " + placementDto.getBroadcastSlotId());
-        }
-        AudioRecordingDto audio = audioRecordingService.getRecordingById(placementDto.getAudioRecordingId());
-        if (audio == null) {
-            throw new NotFoundException("Audio recording not found: " + placementDto.getAudioRecordingId());
-        }
-
-        if (!accessService.isOwnerOrAdmin(audio.getUserId())) {
-            throw new AccessDeniedException("Audio recording " + audio.getId() + " belongs to another user");
-        }
-        if (audio.getApprovalStatus() != ApprovalStatus.APPROVED) {
-            throw new ConflictException("Audio recording " + audio.getId() + " is not approved");
-        }
-        if (slot.getStatus() != Status.AVAILABLE) {
-            throw new ConflictException("Broadcast slot " + slot.getId() + " is already occupied");
-        }
-
-        Duration audioDuration = Duration.ofSeconds(Math.round(audio.getDuration()));
-        Duration slotDuration = Duration.between(slot.getStartTime(), slot.getEndTime());
-        if (audioDuration.compareTo(slotDuration) >= 0) {
-            throw new ConflictException("Audio recording " + audio.getId()
-                    + " is longer than broadcast slot " + slot.getId());
-        }
+        placementValidator.validate(slot, audio);
+        double price = pricingService.calculatePlacementPrice(slot, audio);
 
         Placement placement = mapper.toEntity(placementDto);
         placement.setId(null);
         placement = placementRep.save(placement);
         broadcastSlotService.updateBroadcastSlotStatus(slot.getId(), Status.OCCUPIED);
+
+        billingService.charge(audio.getUserId(), price, PLACEMENT_CHARGE_DESCRIPTION);
         LOGGER.debug("Placement created: {}", placement);
         return mapper.toDto(placement);
     }
@@ -162,33 +137,25 @@ public class PlacementServiceImpl implements PlacementService {
     @Override
     public Double getPlacementPrice(PlacementDto placementDto) {
         LOGGER.debug("Getting a price of placement {}", placementDto);
-        BroadcastSlotDto slot = broadcastSlotService.getBroadcastSlotById(placementDto.getBroadcastSlotId());
+        BroadcastSlotDto slot = getSlotOrThrow(placementDto.getBroadcastSlotId());
+        AudioRecordingDto audio = getAudioOrThrow(placementDto.getAudioRecordingId());
+        return pricingService.calculatePlacementPrice(slot, audio);
+    }
+
+    private BroadcastSlotDto getSlotOrThrow(Long slotId) {
+        BroadcastSlotDto slot = broadcastSlotService.getBroadcastSlotById(slotId);
         if (slot == null) {
-            throw new NotFoundException("Broadcast slot not found: " + placementDto.getBroadcastSlotId());
+            throw new NotFoundException("Broadcast slot not found: " + slotId);
         }
-        AudioRecordingDto audio = audioRecordingService.getRecordingById(placementDto.getAudioRecordingId());
+        return slot;
+    }
+
+    private AudioRecordingDto getAudioOrThrow(Long audioId) {
+        AudioRecordingDto audio = audioRecordingService.getRecordingById(audioId);
         if (audio == null) {
-            throw new NotFoundException("Audio recording not found: " + placementDto.getAudioRecordingId());
+            throw new NotFoundException("Audio recording not found: " + audioId);
         }
-
-        Double baseCost = audio.getCost();
-
-        LocalTime slotStart = slot.getStartTime().toLocalTime();
-
-        boolean highPriority = baseProperties.getPriorityHigh().stream()
-                .anyMatch(p ->
-                        !slotStart.isBefore(p.getStart()) &&
-                                slotStart.isBefore(p.getEnd())
-                );
-
-        double finalPrice = highPriority
-                ? baseCost * baseProperties.getPriorityMultiplier()
-                : baseCost;
-
-        LOGGER.info("Computed placement price: {} (highPriority={}): base={} * multiplier={}",
-                finalPrice, highPriority, baseCost, baseProperties.getPriorityMultiplier()
-        );
-        return finalPrice;
+        return audio;
     }
 
 }
