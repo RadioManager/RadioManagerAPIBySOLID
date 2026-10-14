@@ -1,10 +1,12 @@
 package cs.vsu.radiomanagerapibysolid.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import cs.vsu.radiomanagerapibysolid.model.enumerate.Role;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Data
 @NoArgsConstructor
@@ -17,6 +19,8 @@ public class UserDto {
     private String login;
 
     @NotBlank
+    @ToString.Exclude
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
 
     @NotBlank

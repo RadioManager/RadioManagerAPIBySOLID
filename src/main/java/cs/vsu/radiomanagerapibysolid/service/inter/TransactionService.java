@@ -21,7 +21,6 @@ public interface TransactionService {
 
     TransactionDto createTransaction(TransactionDto transactionDto);
 
-    // TODO(ревью): новый метод — бывшая логика старого TransactionController.createSystemTransaction
     TransactionDto createSystemTransaction(TransactionDto transactionDto);
 
     boolean deleteTransaction(Long id);

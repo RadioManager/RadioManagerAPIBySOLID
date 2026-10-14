@@ -26,11 +26,6 @@ public final class FileUtils {
     private FileUtils(){
     }
 
-    // TODO(ревью): добавлены два улучшения к старому методу:
-    //   1) параметр mediaType → заголовок Content-Type (для mp3 передавать AudioUtils.AUDIO_MPEG), чтобы
-    //      фронт мог играть файл прямо по ссылке <audio src=".../download"> без base64;
-    //   2) Content-Disposition собирается через ContentDisposition с UTF-8 — раньше имя подставлялось строкой
-    //      в кавычках, и русские имена файлов («реклама.mp3») в браузере ломались.
     public static ResponseEntity<Resource> getFileResponse(byte[] fileData, String filename, MediaType mediaType) {
         if (fileData != null) {
             ByteArrayResource resource = new ByteArrayResource(fileData);
@@ -89,8 +84,6 @@ public final class FileUtils {
             Path filepath = directory.resolve(filename);
             return Files.readAllBytes(filepath);
         } catch (NoSuchFileException e) {
-            // TODO(ревью): нового — если запись в БД есть, а файла на диске нет, теперь будет 404
-            //   (через GlobalExceptionHandler), а не 500. Остальные ошибки чтения по-прежнему 500.
             throw new NotFoundException("File not found: " + filename);
         } catch (IOException e) {
             LOGGER.error("Error reading file: {}", e.getMessage());

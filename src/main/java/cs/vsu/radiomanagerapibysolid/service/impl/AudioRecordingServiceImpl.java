@@ -1,6 +1,5 @@
 package cs.vsu.radiomanagerapibysolid.service.impl;
 
-import cs.vsu.radiomanagerapibysolid.config.BaseProperties;
 import cs.vsu.radiomanagerapibysolid.dto.AudioRecordingDto;
 import cs.vsu.radiomanagerapibysolid.mapper.AudioRecordingMapper;
 import cs.vsu.radiomanagerapibysolid.model.AudioRecording;
@@ -20,8 +19,6 @@ import java.util.Optional;
 @Transactional
 @AllArgsConstructor
 public class AudioRecordingServiceImpl implements AudioRecordingService {
-
-    private final BaseProperties baseProperties;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AudioRecordingServiceImpl.class);
 
@@ -112,12 +109,6 @@ public class AudioRecordingServiceImpl implements AudioRecordingService {
         }
         LOGGER.warn("Recording status with id for update {} not found", id);
         return null;
-    }
-
-    @Override
-    public Double getCostByDuration(Double duration) {
-
-        return baseProperties.getFilePrice() * duration;
     }
 
 }

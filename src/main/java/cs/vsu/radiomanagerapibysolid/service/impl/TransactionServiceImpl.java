@@ -25,7 +25,6 @@ public class TransactionServiceImpl implements TransactionService {
 
     private final TransactionMapper mapper;
 
-    // TODO(ревью): новая зависимость — нужна createSystemTransaction, чтобы найти системную сущность
     private final UserService userService;
 
     @Override
@@ -76,10 +75,6 @@ public class TransactionServiceImpl implements TransactionService {
         return mapper.toDto(newTransaction);
     }
 
-    // TODO(ревью): перенесено из старого TransactionController.createSystemTransaction (POST /transaction/system):
-    //   контроллер сам подставлял adminId = id системной сущности и вызывал createTransaction. Логика та же.
-    //   Если системной сущности нет в БД, getSystemEntity бросает IllegalStateException → 500 (это ошибка
-    //   конфигурации сервера, а не клиента).
     @Override
     public TransactionDto createSystemTransaction(TransactionDto transactionDto) {
         LOGGER.debug("Creating system transaction: {}", transactionDto);

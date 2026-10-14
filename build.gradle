@@ -56,5 +56,10 @@ dependencies {
 }
 
 tasks.named('test') {
+    jvmArgs '-Dfile.encoding=UTF-8'
     useJUnitPlatform()
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
 }
