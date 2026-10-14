@@ -2,7 +2,6 @@ package cs.vsu.radiomanagerapibysolid.controller;
 
 import cs.vsu.radiomanagerapibysolid.dto.UserDto;
 import cs.vsu.radiomanagerapibysolid.model.enumerate.Role;
-import cs.vsu.radiomanagerapibysolid.service.inter.AccessService;
 import cs.vsu.radiomanagerapibysolid.service.inter.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
