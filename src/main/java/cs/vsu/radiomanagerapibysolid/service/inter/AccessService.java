@@ -8,4 +8,6 @@ public interface AccessService {
 
     boolean isStationOwnerOrAdmin(Long stationId);
 
+    boolean isRecordingOwnerOrAdmin(Long recordingId);
+
 }
