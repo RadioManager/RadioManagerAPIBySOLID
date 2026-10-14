@@ -11,6 +11,7 @@ import cs.vsu.radiomanagerapibysolid.model.enumerate.Status;
 import cs.vsu.radiomanagerapibysolid.repository.BroadcastSlotRep;
 import cs.vsu.radiomanagerapibysolid.service.inter.AudioRecordingService;
 import cs.vsu.radiomanagerapibysolid.service.inter.BroadcastSlotService;
+import cs.vsu.radiomanagerapibysolid.service.inter.PricingService;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
@@ -20,7 +21,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -42,6 +42,9 @@ public class BroadcastSlotServiceImpl implements BroadcastSlotService {
 
     // TODO(ревью): новая зависимость — нужна splitBroadcastSlotByAudio, чтобы узнать длительность записи
     private final AudioRecordingService audioRecordingService;
+
+    // TODO(ревью): новая зависимость — проверка «прайм-тайм» в getEmptyBroadcastSlotsByPriorityWithRadioStation
+    private final PricingService pricingService;
 
     @Override
     public List<BroadcastSlotDto> getAllBroadcastSlots() {
@@ -105,17 +108,9 @@ public class BroadcastSlotServiceImpl implements BroadcastSlotService {
         LOGGER.debug("Fetching broadcast slot by radio station with id: {} and high priority is {}",
                 radioStationId, highPriority);
         List<BroadcastSlotDto> slots = getBroadcastSlotsByRadioStationIdWithStatus(radioStationId, Status.AVAILABLE);
+        // TODO(ревью): проверка «прайм-тайм» теперь одна — в PricingService, раньше тут была её копия
         return slots.stream()
-                .filter(slot -> {
-                    LocalTime slotStart = slot.getStartTime().toLocalTime();
-
-                    boolean isHigh = baseProperties.getPriorityHigh().stream()
-                            .anyMatch(window ->
-                                    !slotStart.isBefore(window.getStart()) &&
-                                            slotStart.isBefore(window.getEnd())
-                            );
-                    return highPriority == isHigh;
-                })
+                .filter(slot -> pricingService.isHighPriority(slot.getStartTime()) == highPriority)
                 .toList();
     }
 
@@ -354,12 +349,6 @@ public class BroadcastSlotServiceImpl implements BroadcastSlotService {
         }
         LOGGER.debug("Created {} broadcast slot DTOs for station {}", dtos.size(), stationId);
         return dtos;
-    }
-
-    @Override
-    public double getPriorityMultiplier(boolean priority) {
-        LOGGER.debug("Fetching priority multiplier for priority: {}", priority);
-        return priority ? baseProperties.getPriorityMultiplier() : 1.0;
     }
 
 }

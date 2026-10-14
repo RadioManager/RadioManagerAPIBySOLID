@@ -25,6 +25,4 @@ public interface AudioRecordingService {
 
     AudioRecordingDto updateRecordingStatus(Long id, ApprovalStatus approvalStatus);
 
-    Double getCostByDuration(Double duration);
-
 }

@@ -60,6 +60,4 @@ public interface BroadcastSlotService {
     List<BroadcastSlotDto> createBroadcastSlotsDtoFromTimeAndStation(Long stationId,
                                                                      List<Pair<LocalDateTime, LocalDateTime>> timePair);
 
-    double getPriorityMultiplier(boolean priority);
-
 }

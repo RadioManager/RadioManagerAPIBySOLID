@@ -4,6 +4,7 @@ import cs.vsu.radiomanagerapibysolid.dto.BroadcastSlotDto;
 import cs.vsu.radiomanagerapibysolid.model.enumerate.Status;
 import cs.vsu.radiomanagerapibysolid.service.inter.BroadcastSlotService;
 import cs.vsu.radiomanagerapibysolid.service.inter.DataTableService;
+import cs.vsu.radiomanagerapibysolid.service.inter.PricingService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -30,6 +31,8 @@ public class BroadcastSlotController {
     private final BroadcastSlotService broadcastSlotService;
 
     private final DataTableService dataTableService;
+
+    private final PricingService pricingService;
 
     @GetMapping
     @PreAuthorize("isAuthenticated()")
@@ -356,7 +359,7 @@ public class BroadcastSlotController {
     )
     public ResponseEntity<Double> getPriorityMultiplier(@RequestParam boolean highPriority) {
         LOGGER.info("Fetching priority multiplier for highPriority={}", highPriority);
-        double multiplier = broadcastSlotService.getPriorityMultiplier(highPriority);
+        double multiplier = pricingService.getPriorityMultiplier(highPriority);
         return ResponseEntity.ok(multiplier);
     }
 

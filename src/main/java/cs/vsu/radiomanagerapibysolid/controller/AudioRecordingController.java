@@ -5,6 +5,7 @@ import cs.vsu.radiomanagerapibysolid.model.enumerate.ApprovalStatus;
 import cs.vsu.radiomanagerapibysolid.service.inter.AccessService;
 import cs.vsu.radiomanagerapibysolid.service.inter.AudioRecordingService;
 import cs.vsu.radiomanagerapibysolid.service.inter.AudioService;
+import cs.vsu.radiomanagerapibysolid.service.inter.PricingService;
 import cs.vsu.radiomanagerapibysolid.util.AudioUtils;
 import cs.vsu.radiomanagerapibysolid.util.FileUtils;
 import io.swagger.v3.oas.annotations.Operation;
@@ -36,6 +37,8 @@ public class AudioRecordingController {
     private final AudioService audioService;
 
     private final AccessService accessService;
+
+    private final PricingService pricingService;
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
@@ -132,7 +135,7 @@ public class AudioRecordingController {
         recordingDto.setUserId(userId);
         recordingDto.setFilePath(originalFilename);
         recordingDto.setDuration(duration);
-        recordingDto.setCost(audioRecordingService.getCostByDuration(duration));
+        recordingDto.setCost(pricingService.calculateRecordingCost(duration));
         recordingDto.setApprovalStatus(ApprovalStatus.PENDING);
         AudioRecordingDto created = audioRecordingService.createRecording(recordingDto);
 
